@@ -1,6 +1,6 @@
 """
-프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test) - 모던 서베이 카드 UI 적용
-설명: 질문이 중앙에 크고 굵게 배치되고, 1~5점 척도가 깔끔한 사각형 카드(그리드) 형태로 제공되는 대시보드
+프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test) - 항해하는 컨테이너선 에디션
+설명: 문제 진행률에 따라 푸른 물결 바 위를 컨테이너선(🚢)이 실시간으로 항해하는 귀여운 인터랙티브 대시보드
 실행 명령어: streamlit run app.py
 """
 import platform
@@ -25,7 +25,7 @@ else:
 plt.rcParams["axes.unicode_minus"] = False
 
 # --------------------------------------------------
-# 1. Streamlit 페이지 설정 및 커스텀 카드 CSS 주입
+# 1. Streamlit 페이지 설정 및 커스텀 CSS
 # --------------------------------------------------
 st.set_page_config(
     page_title="무역 직무 MBTI 진단소",
@@ -64,11 +64,11 @@ st.markdown("""
     word-break: keep-all;
 }
 
-/* 📌 [디자인 반영] 질문 상자: 중앙 정렬 & 또렷한 글씨 */
+/* 중앙 집중형 질문 상자 */
 .quiz-question-container {
     text-align: center;
-    margin-top: 15px;
-    margin-bottom: 30px;
+    margin-top: 5px;
+    margin-bottom: 25px;
     padding: 10px;
 }
 .quiz-badge {
@@ -79,35 +79,35 @@ st.markdown("""
     border-radius: 20px;
     font-size: 0.88rem;
     font-weight: 700;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 .quiz-question-title {
-    font-size: clamp(1.25rem, 3.8vw, 1.7rem);
+    font-size: clamp(1.25rem, 3.8vw, 1.65rem);
     font-weight: 800;
     color: #1A252F;
     line-height: 1.45;
     word-break: keep-all;
-    max-width: 700px;
+    max-width: 680px;
     margin: 0 auto;
 }
 
-/* 📌 [디자인 반영] 선택지 버튼을 둥근 사각 카드 박스로 스타일링 */
+/* 선택지 버튼 상자 스타일링 */
 div[data-testid="stButton"] > button {
     width: 100%;
-    min-height: 56px;
+    min-height: 52px;
     background-color: #FFFFFF !important;
     color: #2C3E50 !important;
     border: 1.8px solid #E2E8F0 !important;
     border-radius: 12px !important;
     font-size: clamp(0.95rem, 2.6vw, 1.05rem) !important;
     font-weight: 600 !important;
-    padding: 12px 16px !important;
+    padding: 10px 16px !important;
     box-shadow: 0 2px 6px rgba(0,0,0,0.03) !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 10px !important;
 }
 
-/* 마우스 올렸을 때(Hover): 이미지처럼 하늘색 테두리 및 은은한 그림자 */
+/* 선택지 상자 마우스 오버(Hover) 효과 */
 div[data-testid="stButton"] > button:hover {
     border-color: #38BDF8 !important;
     color: #0284C7 !important;
@@ -116,12 +116,12 @@ div[data-testid="stButton"] > button:hover {
     transform: translateY(-1.5px);
 }
 
-/* 이전 버튼 등 보조 버튼 스타일 */
+/* 이전 버튼 스타일 */
 .nav-btn div[data-testid="stButton"] > button {
     background-color: #F8FAFC !important;
     border: 1px solid #CBD5E1 !important;
     color: #64748B !important;
-    min-height: 44px !important;
+    min-height: 42px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -206,13 +206,12 @@ QUESTIONS = [
     {"id": 20, "cat": "법률/관세 및 금융", "q": "수출환어음 매입(네고) 시 은행의 하자 지적을 받지 않도록 금융 서류를 빈틈없이 검토한다.", "job": "무역금융/외환관리", "weight": 2.5}
 ]
 
-# 5단계 선택지 텍스트 정의
 CARD_OPTIONS = [
-    (1, "전혀 아니다"),
-    (2, "아닌 편이다"),
-    (3, "보통이다"),
-    (4, "그런 편이다"),
-    (5, "매우 그렇다")
+    (1, "🙅‍♂️ 전혀 아니다"),
+    (2, "🙁 아닌 편이다"),
+    (3, "😐 보통이다"),
+    (4, "🙂 그런 편이다"),
+    (5, "🙆‍♂️ 매우 그렇다")
 ]
 
 # --------------------------------------------------
@@ -277,19 +276,57 @@ if st.session_state.stage == "intro":
         st.rerun()
 
 # --------------------------------------------------
-# 화면 2: 질문 상자 및 2열 카드 그리드 진단 화면 (디자인 전면 개편)
+# 화면 2: 질문 상자 및 컨테이너선 진행 바 (🚢 항해 애니메이션)
 # --------------------------------------------------
 elif st.session_state.stage == "test":
     curr_idx = st.session_state.q_index
     total_q = len(QUESTIONS)
     curr_q = QUESTIONS[curr_idx]
 
-    # 상단 진행 바 (Progress Bar)
-    progress_val = (curr_idx + 1) / total_q
-    st.progress(progress_val)
-    st.markdown(f"<p style='text-align: right; color: #888; font-weight: 700; font-size: 0.85rem; margin-top: 4px;'>{curr_idx + 1} / {total_q}</p>", unsafe_allow_html=True)
+    # 📌 [수정 반영] 파란 줄 위를 항해하는 귀여운 컨테이너선(🚢) 프로그레스 바
+    progress_pct = round(((curr_idx + 1) / total_q) * 100, 1)
 
-    # 📌 이미지 형태의 중앙 집중형 질문 타이틀
+    st.markdown(
+        f"""
+        <div style="width: 100%; margin: 12px 0 25px 0;">
+            <!-- 컨테이너선 배 위치 -->
+            <div style="position: relative; width: 100%; height: 28px;">
+                <span style="
+                    position: absolute;
+                    left: calc({progress_pct}% - 14px);
+                    font-size: 24px;
+                    transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+                    user-select: none;
+                ">🚢</span>
+            </div>
+            <!-- 파란색 바다 레일 -->
+            <div style="
+                width: 100%; 
+                height: 8px; 
+                background-color: #E2E8F0; 
+                border-radius: 6px; 
+                overflow: hidden;
+            ">
+                <div style="
+                    width: {progress_pct}%; 
+                    height: 100%; 
+                    background: linear-gradient(90deg, #38BDF8 0%, #0284C7 100%);
+                    border-radius: 6px; 
+                    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                "></div>
+            </div>
+            <!-- 순항 안내 텍스트 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                <span style="font-size: 0.8rem; color: #0284C7; font-weight: 700;">🌊 {progress_pct}% 순항 중</span>
+                <span style="font-size: 0.85rem; color: #64748B; font-weight: 700;">{curr_idx + 1} / {total_q}</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # 질문 텍스트 상자
     st.markdown(
         f"""
         <div class="quiz-question-container">
@@ -300,68 +337,29 @@ elif st.session_state.stage == "test":
         unsafe_allow_html=True
     )
 
-    # 📌 이미지 속 사각 카드(Button Grid) 배치 (2열 그리드 + 가운데 1개)
-    # Row 1 (1점, 2점)
-    r1_col1, r1_col2 = st.columns(2)
-    with r1_col1:
-        if st.button(CARD_OPTIONS[0][1], key=f"btn_score_1_{curr_q['id']}"):
-            st.session_state.answers[curr_q["id"]] = 1
-            if curr_idx < total_q - 1:
-                st.session_state.q_index += 1
-                st.rerun()
-            else:
-                st.session_state.stage = "result"
-                st.rerun()
-    with r1_col2:
-        if st.button(CARD_OPTIONS[1][1], key=f"btn_score_2_{curr_q['id']}"):
-            st.session_state.answers[curr_q["id"]] = 2
-            if curr_idx < total_q - 1:
-                st.session_state.q_index += 1
-                st.rerun()
-            else:
-                st.session_state.stage = "result"
-                st.rerun()
+    # 중앙 정렬 5개 선택지 버튼 상자
+    pad_left, center_col, pad_right = st.columns([1, 4, 1])
 
-    # Row 2 (3점, 4점)
-    r2_col1, r2_col2 = st.columns(2)
-    with r2_col1:
-        if st.button(CARD_OPTIONS[2][1], key=f"btn_score_3_{curr_q['id']}"):
-            st.session_state.answers[curr_q["id"]] = 3
-            if curr_idx < total_q - 1:
-                st.session_state.q_index += 1
-                st.rerun()
-            else:
-                st.session_state.stage = "result"
-                st.rerun()
-    with r2_col2:
-        if st.button(CARD_OPTIONS[3][1], key=f"btn_score_4_{curr_q['id']}"):
-            st.session_state.answers[curr_q["id"]] = 4
-            if curr_idx < total_q - 1:
-                st.session_state.q_index += 1
-                st.rerun()
-            else:
-                st.session_state.stage = "result"
-                st.rerun()
+    with center_col:
+        for score, label_text in CARD_OPTIONS:
+            if st.button(label_text, key=f"btn_opt_{score}_{curr_q['id']}", use_container_width=True):
+                st.session_state.answers[curr_q["id"]] = score
+                if curr_idx < total_q - 1:
+                    st.session_state.q_index += 1
+                    st.rerun()
+                else:
+                    st.session_state.stage = "result"
+                    st.rerun()
 
-    # Row 3 (5점: 단독 전폭 또는 중앙 배치)
-    if st.button(CARD_OPTIONS[4][1], key=f"btn_score_5_{curr_q['id']}"):
-        st.session_state.answers[curr_q["id"]] = 5
-        if curr_idx < total_q - 1:
-            st.session_state.q_index += 1
-            st.rerun()
-        else:
-            st.session_state.stage = "result"
-            st.rerun()
+        st.markdown("<br>", unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # 하단 내비게이션 (이전 문제 버튼)
-    if curr_idx > 0:
-        st.markdown("<div class='nav-btn'>", unsafe_allow_html=True)
-        if st.button("⬅️ 이전 질문으로", use_container_width=True):
-            st.session_state.q_index -= 1
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
+        # 이전 질문 이동 버튼
+        if curr_idx > 0:
+            st.markdown("<div class='nav-btn'>", unsafe_allow_html=True)
+            if st.button("⬅️ 이전 질문으로 돌아가기", use_container_width=True):
+                st.session_state.q_index -= 1
+                st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------------------------------
 # 화면 3: 최종 진단 결과 화면
