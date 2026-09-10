@@ -2,114 +2,108 @@ import streamlit as st
 import requests
 
 # ----------------------------------------------------------------------
-# 1. 페이지 설정 및 로즈골드 럭셔리 테마 CSS
+# 1. 페이지 설정 및 로즈골드 럭셔리 사각형 키패드 CSS
 # ----------------------------------------------------------------------
 st.set_page_config(page_title="환율 계산기", page_icon="✦", layout="centered")
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;600&family=Alex+Brush&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;600&display=swap');
 
-    /* 1. 바깥 배경 */
+    /* 1. 바깥 웹 배경: 샴페인 베이지 */
     .stApp, html, body {
-        background-color: #ECE5DE !important; /* 이미지 바깥의 차분한 샴페인/베이지 배경 */
+        background-color: #ECE5DE !important;
         font-family: 'Montserrat', sans-serif !important;
     }
 
     header, footer { visibility: hidden !important; height: 0 !important; }
 
-    /* 2. 스마트폰 본체 프레임 (로즈골드 메탈릭 테두리) */
+    /* 2. [수정 3] 스마트폰 기기 프레임: 한 화면에 쏙 들어가도록 컴팩트 축소 */
     .block-container {
-        width: 94vw !important;
-        max-width: 410px !important;
+        width: 92vw !important;
+        max-width: 380px !important;
         background: #09090b !important;
-        border: 10px solid #c9a598 !important; /* 로즈골드 메탈 베젤 */
-        border-radius: 54px !important;
+        border: clamp(6px, 2vw, 9px) solid #c9a598 !important; /* 로즈골드 메탈릭 테두리 */
+        border-radius: clamp(32px, 9vw, 46px) !important;
         box-shadow: 
             0 0 0 2px #5a453f,
-            0 25px 60px rgba(0, 0, 0, 0.45),
-            inset 0 0 20px rgba(0, 0, 0, 0.8) !important;
-        padding: 16px 18px 24px 18px !important;
-        margin: 15px auto !important;
+            0 20px 50px rgba(0, 0, 0, 0.45) !important;
+        padding: 10px 14px 14px 14px !important;
+        margin: 4px auto !important;
         box-sizing: border-box !important;
-        position: relative;
     }
 
-    /* 3. 상단 다이내믹 아일랜드 */
+    /* 3. 슬림 다이내믹 아일랜드 */
     .dynamic-island {
-        width: 86px;
-        height: 22px;
+        width: 72px;
+        height: 18px;
         background-color: #000000;
-        border-radius: 14px;
-        margin: 0 auto 10px auto;
+        border-radius: 12px;
+        margin: 0 auto 4px auto;
         border: 1.5px solid #1c1c1e;
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        padding-right: 9px;
+        padding-right: 8px;
     }
     .camera-lens {
-        width: 7px;
-        height: 7px;
+        width: 6px;
+        height: 6px;
         background-color: #0d1322;
         border-radius: 50%;
         border: 1px solid #1e293b;
     }
 
-    /* 4. 상단 타이틀 & 감성 그래픽 */
+    /* 4. [수정 1] 제목 '환율 계산기' 완벽한 화면 중앙 정렬 */
     .header-area {
-        position: relative;
-        text-align: center;
-        margin-bottom: 14px;
+        width: 100% !important;
+        text-align: center !important;
+        margin: 2px 0 6px 0 !important;
     }
-    .hand-script {
-        position: absolute;
-        right: 4px;
-        top: -6px;
-        font-family: 'Alex Brush', cursive;
-        color: #d1ada3;
-        font-size: 15px;
-        line-height: 1.1;
-        text-align: right;
-        transform: rotate(-4deg);
-        opacity: 0.85;
+    .top-star {
+        color: #d8b2a7;
+        font-size: 11px;
+        margin-bottom: 1px;
     }
     .main-title {
-        font-family: 'Cormorant Garamond', serif;
-        font-size: 26px;
-        font-weight: 700;
+        font-family: 'Cormorant Garamond', serif !important;
+        font-size: clamp(21px, 6vw, 25px) !important;
+        font-weight: 700 !important;
         background: linear-gradient(135deg, #FFF1EE 0%, #E8BCB0 50%, #C99E90 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: 2px;
-        margin: 0;
+        margin: 0 !important;
+        text-align: center !important;
+        display: block !important;
+        width: 100% !important;
     }
     .sub-title {
-        font-size: 9px;
-        letter-spacing: 3.5px;
+        font-size: 8px;
+        letter-spacing: 3px;
         color: #aa8d84;
-        margin-top: 3px;
+        margin-top: 1px;
         text-transform: uppercase;
+        text-align: center;
     }
 
-    /* 5. 국가 선택 셀렉트박스 (로즈골드 캡슐 스타일) */
+    /* 5. 국가 선택 셀렉트박스 슬림화 */
     div[data-testid="stSelectbox"] label {
         color: #d9bfb7 !important;
-        font-size: 11px !important;
+        font-size: 10px !important;
         font-weight: 600 !important;
-        margin-bottom: 4px !important;
+        margin-bottom: 1px !important;
     }
     div[data-baseweb="select"] > div {
         background: linear-gradient(180deg, #181517 0%, #100e10 100%) !important;
-        border-radius: 24px !important;
+        border-radius: 16px !important;
         border: 1px solid #735952 !important;
-        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.08) !important;
-        min-height: 38px !important;
-        height: 38px !important;
+        min-height: 32px !important;
+        height: 32px !important;
     }
     div[data-baseweb="select"] span {
         color: #f5eae7 !important;
-        font-size: 12px !important;
+        font-size: 11px !important;
         font-weight: 600 !important;
     }
     div[data-baseweb="select"] svg {
@@ -119,18 +113,18 @@ st.markdown("""
     /* 6. 디스플레이 화면 */
     .display-box {
         text-align: right;
-        padding: 4px 10px 10px 10px;
+        padding: 2px 8px 6px 8px;
+        margin-bottom: 2px;
     }
     .amount-text {
         font-family: 'Cormorant Garamond', serif;
-        font-size: 42px;
+        font-size: clamp(26px, 7.5vw, 34px);
         font-weight: 600;
         color: #ffffff;
         line-height: 1;
-        letter-spacing: 0.5px;
     }
     .currency-tag {
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
         color: #b09187;
         margin-left: 4px;
@@ -142,66 +136,66 @@ st.markdown("""
         position: relative;
         height: 1px;
         background: linear-gradient(90deg, transparent, #84675e, transparent);
-        margin: 12px 0 10px 0;
+        margin: 6px 0;
     }
     .divider-star::after {
         content: "✦";
         position: absolute;
         color: #e5b9ad;
-        font-size: 10px;
+        font-size: 9px;
         background: #09090b;
-        padding: 0 6px;
+        padding: 0 4px;
     }
 
-    /* 7. 3열 그리드 정렬 */
+    /* 7. [수정 2 & 3] 모바일 3열 그리드 밀착 배치 */
     div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         align-items: center !important;
-        justify-content: center !important;
-        gap: 14px !important;
-        margin-bottom: 12px !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+        margin-bottom: 5px !important;
         width: 100% !important;
     }
     div[data-testid="stColumn"] {
         flex: 1 1 0px !important;
+        min-width: 0 !important;
         display: flex !important;
         justify-content: center !important;
     }
 
-    /* 8. 버튼 공통 규격 */
+    /* 8. [수정 2] 정사각형 / 직사각형 둥근 버튼 공통 규격 */
     div[data-testid="stButton"] {
         width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
     div[data-testid="stButton"] > button {
-        width: 72px !important;
-        height: 72px !important;
-        min-width: 72px !important;
-        min-height: 72px !important;
-        border-radius: 50% !important;
+        width: 100% !important;
+        height: clamp(44px, 12vw, 54px) !important;
+        min-height: clamp(44px, 12vw, 54px) !important;
+        max-height: clamp(44px, 12vw, 54px) !important;
+        border-radius: 16px !important; /* 👈 직사각형/정사각형 형태의 둥근 모서리 */
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         margin: 0 auto !important;
         padding: 0 !important;
-        transition: transform 0.12s ease, box-shadow 0.12s ease !important;
+        transition: transform 0.08s ease, opacity 0.1s ease !important;
     }
     div[data-testid="stButton"] > button:active {
-        transform: scale(0.93) !important;
+        transform: scale(0.94) !important;
+        opacity: 0.75 !important;
     }
 
-    /* 8-A. 숫자 버튼: 어두운 구체 + 로즈골드 빛 테두리 (Black Pearl Glass) */
+    /* 8-A. 숫자 버튼 (블랙 펄 사각형) */
     .btn-num div[data-testid="stButton"] > button {
-        background: radial-gradient(circle at 35% 30%, #2f2a29 0%, #151314 65%, #0d0c0d 100%) !important;
-        border: 1px solid rgba(220, 180, 170, 0.45) !important;
+        background: radial-gradient(circle at 50% 30%, #2a2524 0%, #151314 70%, #0d0c0d 100%) !important;
+        border: 1px solid rgba(220, 180, 170, 0.4) !important;
         box-shadow: 
-            inset 0 2px 4px rgba(255, 240, 235, 0.25),
-            inset 0 -2px 6px rgba(0, 0, 0, 0.9),
-            0 4px 12px rgba(0, 0, 0, 0.6) !important;
+            inset 0 1px 2px rgba(255, 240, 235, 0.2),
+            0 2px 6px rgba(0, 0, 0, 0.5) !important;
     }
     .btn-num div[data-testid="stButton"] > button p,
     .btn-num div[data-testid="stButton"] > button span,
@@ -209,21 +203,20 @@ st.markdown("""
     .btn-num div[data-testid="stButton"] > button * {
         color: #F8ECE8 !important;
         font-family: 'Cormorant Garamond', serif !important;
-        font-size: 33px !important;
-        font-weight: 500 !important;
+        font-size: clamp(24px, 6.5vw, 29px) !important;
+        font-weight: 600 !important;
         line-height: 1 !important;
         margin: 0 !important;
         padding: 0 !important;
     }
 
-    /* 8-B. 기능 버튼 (C, ⌫): 화사한 메탈릭 로즈골드 구체 (Metallic Rose Gold) */
+    /* 8-B. 기능 버튼 C, ⌫ (메탈릭 로즈골드 사각형) */
     .btn-fn div[data-testid="stButton"] > button {
-        background: radial-gradient(circle at 35% 30%, #F5D7CE 0%, #D4A99D 55%, #A87A6E 100%) !important;
+        background: radial-gradient(circle at 50% 30%, #F5D7CE 0%, #D4A99D 60%, #A87A6E 100%) !important;
         border: 1px solid #FFE4DC !important;
         box-shadow: 
-            inset 0 2px 5px rgba(255, 255, 255, 0.7),
-            inset 0 -3px 6px rgba(110, 60, 50, 0.4),
-            0 4px 14px rgba(190, 130, 120, 0.3) !important;
+            inset 0 1px 3px rgba(255, 255, 255, 0.6),
+            0 2px 8px rgba(190, 130, 120, 0.3) !important;
     }
     .btn-fn div[data-testid="stButton"] > button p,
     .btn-fn div[data-testid="stButton"] > button span,
@@ -231,45 +224,27 @@ st.markdown("""
     .btn-fn div[data-testid="stButton"] > button * {
         color: #261613 !important;
         font-family: 'Cormorant Garamond', serif !important;
-        font-size: 28px !important;
+        font-size: clamp(20px, 5.5vw, 24px) !important;
         font-weight: 700 !important;
         line-height: 1 !important;
         margin: 0 !important;
         padding: 0 !important;
     }
 
-    /* 9. 하단 서명 레터링 & 홈 바 */
-    .bottom-slogan {
-        text-align: center;
-        margin-top: 14px;
-        font-size: 8px;
-        letter-spacing: 3px;
-        color: #8c726a;
-        text-transform: uppercase;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-    .bottom-slogan::before, .bottom-slogan::after {
-        content: "";
-        width: 26px;
-        height: 0.5px;
-        background-color: #634f49;
-    }
+    /* 9. 하단 홈 바 슬림화 */
     .home-bar {
-        width: 100px;
+        width: 80px;
         height: 3.5px;
         background: linear-gradient(90deg, #99786f, #d8b2a7, #99786f);
         border-radius: 10px;
-        margin: 12px auto 0 auto;
+        margin: 8px auto 0 auto;
         opacity: 0.8;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------------------------
-# 2. 세션 상태 관리 및 환율 계산 로직
+# 2. 세션 상태 관리 및 환율 연산
 # ----------------------------------------------------------------------
 if "input_amount" not in st.session_state:
     st.session_state.input_amount = "0"
@@ -332,23 +307,21 @@ def press_action(key, from_c, to_c):
         st.session_state.converted_amount = calculate_exchange(st.session_state.input_amount, from_c, to_c)
 
 # ----------------------------------------------------------------------
-# 3. 상단 헤더 (다이내믹 아일랜드 & 럭셔리 타이틀)
+# 3. [수정 1] 상단 헤더: 제목 '환율 계산기' 완전 중앙 정렬
 # ----------------------------------------------------------------------
 st.markdown("""
 <div class="dynamic-island">
     <div class="camera-lens"></div>
 </div>
 <div class="header-area">
-    <div class="hand-script">Good<br>Rates<br>Brighter<br>Days ♡</div>
-    <div style="color: #d8b2a7; font-size: 14px; margin-bottom: 2px;">✦</div>
-    <h1 class="main-title">✦ 환율 계산기 ✦</h1>
+    <div class="top-star">✦</div>
+    <div class="main-title">✦ 환율 계산기 ✦</div>
     <div class="sub-title">CURRENCY CONVERTER</div>
-    <div style="font-size: 9px; color: #a47d72; margin-top: 3px;">♥</div>
 </div>
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------------------------
-# 4. 국가 선택 드롭다운 (로즈골드 캡슐)
+# 4. 국가 선택 박스 (로즈골드 캡슐 형태)
 # ----------------------------------------------------------------------
 c_box1, c_box2 = st.columns(2)
 with c_box1:
@@ -368,7 +341,7 @@ except ValueError:
     formatted_input = st.session_state.input_amount
 
 # ----------------------------------------------------------------------
-# 5. 세리프 폰트 액정 디스플레이 & 별빛 구분선
+# 5. 디스플레이 화면 & 별빛 구분선
 # ----------------------------------------------------------------------
 st.markdown(f"""
 <div class="display-box">
@@ -385,7 +358,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------------------------
-# 6. 3D 로즈골드 유리알 키패드 (이미지와 동일한 버튼 배열)
+# 6. [수정 2] 직사각형/정사각형 형태의 로즈골드 키패드
 # ----------------------------------------------------------------------
 # 1행: 1, 2, 3
 r1 = st.columns(3)
@@ -411,7 +384,7 @@ for idx, num in enumerate([7, 8, 9]):
         st.button(str(num), key=f"k_{num}", on_click=press_action, args=(num, from_code, to_code))
         st.markdown('</div>', unsafe_allow_html=True)
 
-# 4행: C (로즈골드), 0 (유리알), ⌫ (로즈골드)
+# 4행: C (로즈골드), 0 (블랙펄), ⌫ (로즈골드)
 r4 = st.columns(3)
 with r4[0]:
     st.markdown('<div class="btn-fn">', unsafe_allow_html=True)
@@ -427,11 +400,6 @@ with r4[2]:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ----------------------------------------------------------------------
-# 7. 하단 감성 슬로건 및 홈 바
+# 7. 하단 홈 바
 # ----------------------------------------------------------------------
-st.markdown("""
-<div class="bottom-slogan">
-    Small Change · A Brighter Tomorrow
-</div>
-<div class="home-bar"></div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="home-bar"></div>', unsafe_allow_html=True)
