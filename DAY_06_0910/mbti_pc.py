@@ -1,9 +1,10 @@
 """
 프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test)
-수정사항:
-1. 결과 화면 세로 배치: 적합 매칭도 -> 6대 직무 적합도 비교 차트 -> 무식이 교수 실무 가이드
-2. 무역 직무 다운로드(CSV) 버튼과 처음으로 돌아가기 버튼을 화면 정중앙에 동일한 크기로 정렬
-3. 한글 폰트 및 마크다운 들여쓰기 깨짐 방지 완벽 유지
+수정사항: 
+1. 인트로 화면 텍스트 전체 완벽한 가운데 정렬 (text-align: center)
+2. 코식이 / 무식이 볼드체 및 모바일 3줄 줄바꿈 유지
+3. 적합 매칭도 -> 6대 직무 차트 -> 실무 가이드 순 세로 정렬
+4. 다운로드 & 처음으로 돌아가기 버튼 중앙 정렬 및 1:1 동일 크기
 실행 명령어: streamlit run app.py
 """
 import platform
@@ -271,7 +272,7 @@ if "answers" not in st.session_state:
     st.session_state.answers = {q["id"]: 3 for q in QUESTIONS}
 
 # --------------------------------------------------
-# 화면 1: 초기 인트로 화면
+# 화면 1: 초기 인트로 화면 (텍스트 전체 가운데 정렬 반영)
 # --------------------------------------------------
 if st.session_state.stage == "intro":
     st.markdown("<div class='main-title'>🌐 무역 직무 MBTI 센터 🌐</div>", unsafe_allow_html=True)
@@ -303,17 +304,24 @@ if st.session_state.stage == "intro":
         unsafe_allow_html=True
     )
     
+    # 📌 요청하신 텍스트 전체 가운데 정렬(text-align: center) 적용 카드
     st.markdown("""
-    <div class='responsive-card' style='border: 1px solid #e0e0e0;'>
-        <p style='font-size: clamp(1rem, 3.5vw, 1.15rem); font-weight: bold; margin-bottom: 6px;'>&ldquo;무역학과 나와서 뭐 하지?&rdquo;</p>
-        <p style='font-size: clamp(1rem, 3.5vw, 1.15rem); font-weight: bold; margin-bottom: 12px;'>&ldquo;비전공자인데 어떤 무역 포지션이 맞을까?&rdquo;</p>
-        <div style='line-height: 1.7; color: #475569; font-size: clamp(0.85rem, 2.9vw, 1.0rem); margin-bottom: 0;'>
-            <p style='margin: 0; white-space: nowrap;'>10년 차 UI 전문가 <b>코식이</b>와</p>
-            <p style='margin: 0; white-space: nowrap;'>20년 차 무역 전문가 <b>무식이</b>가 함께 설계한</p>
-            <p style='margin: 0; white-space: nowrap;'>20문항 초정밀 직무 적합도 진단입니다.</p>
+    <div class='responsive-card' style='border: 1px solid #e0e0e0; text-align: center;'>
+        <p style='font-size: clamp(1rem, 3.5vw, 1.15rem); font-weight: bold; margin-bottom: 6px; text-align: center;'>
+            &ldquo;무역학과 나와서 뭐 하지?&rdquo;
+        </p>
+        <p style='font-size: clamp(1rem, 3.5vw, 1.15rem); font-weight: bold; margin-bottom: 14px; text-align: center;'>
+            &ldquo;비전공자인데 어떤 무역 포지션이 맞을까?&rdquo;
+        </p>
+        <div style='line-height: 1.75; color: #475569; font-size: clamp(0.85rem, 2.9vw, 1.0rem); margin-bottom: 0; text-align: center;'>
+            <p style='margin: 0; text-align: center;'>10년 차 UI 전문가 <b>코식이</b>와</p>
+            <p style='margin: 0; text-align: center;'>20년 차 무역 전문가 <b>무식이</b>가 함께 설계한</p>
+            <p style='margin: 0; text-align: center;'>20문항 초정밀 직무 적합도 진단입니다.</p>
         </div>
         <hr style='margin: 14px 0;'>
-        <p style='font-size: clamp(0.8rem, 2.5vw, 0.9rem); color: #888; margin-bottom: 0;'>⏱️ 진단 소요 시간: 약 2 ~ 3분 | 척도: 1점 ~ 5점</p>
+        <p style='font-size: clamp(0.8rem, 2.5vw, 0.9rem); color: #888; margin-bottom: 0; text-align: center;'>
+            ⏱️ 진단 소요 시간: 약 2 ~ 3분 | 척도: 1점 ~ 5점
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -402,7 +410,7 @@ elif st.session_state.stage == "test":
             st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 화면 3: 최종 진단 결과 화면 (수정 1 & 수정 2 반영)
+# 화면 3: 최종 진단 결과 화면
 # --------------------------------------------------
 elif st.session_state.stage == "result":
     job_scores = {job: 0.0 for job in TRADE_JOBS.keys()}
@@ -482,9 +490,7 @@ elif st.session_state.stage == "result":
     """
     st.markdown(ocean_wave_animation_html, unsafe_allow_html=True)
 
-    # --------------------------------------------------
-    # 📌 [수정 1-1] 1번째 배치: 당신에게 가장 추천하는 무역 직무 (적합 매칭도)
-    # --------------------------------------------------
+    # 1. '당신에게 가장 추천하는 무역 직무' (적합 매칭도)
     st.markdown(
         "<h3 style='font-size: clamp(1.2rem, 3.8vw, 1.6rem); margin-bottom: 12px; word-break: keep-all;'>🎯 당신에게 가장 추천하는 무역 직무</h3>",
         unsafe_allow_html=True
@@ -507,9 +513,7 @@ elif st.session_state.stage == "result":
 
     st.markdown("---")
 
-    # --------------------------------------------------
-    # 📌 [수정 1-2] 2번째 배치: 6대 직무 적합도 비교 차트
-    # --------------------------------------------------
+    # 2. '6대 직무 적합도 비교 차트'
     st.markdown("<h3 style='font-size: clamp(1.2rem, 3.8vw, 1.6rem); margin-bottom: 12px;'>📊 6대 직무 적합도 비교 차트</h3>", unsafe_allow_html=True)
     
     chart_rows_list = []
@@ -539,9 +543,7 @@ elif st.session_state.stage == "result":
 
     st.markdown("---")
 
-    # --------------------------------------------------
-    # 📌 [수정 1-3] 3번째 배치: 무식이 교수의 실무 가이드
-    # --------------------------------------------------
+    # 3. '무식이 교수의 실무 가이드'
     st.markdown(
         f"""
         <h3 style='font-size: clamp(1.2rem, 3.8vw, 1.6rem); line-height: 1.45; margin-bottom: 16px;'>
@@ -563,9 +565,7 @@ elif st.session_state.stage == "result":
         for cert in top_info["recommended_certs"]:
             st.markdown(f"- 🏅 **{cert}**")
 
-    # --------------------------------------------------
-    # 📌 [수정 2] 다운로드 및 다시하기 버튼 중앙 정렬 & 동일 크기 설정
-    # --------------------------------------------------
+    # 4. 진단 리포트 CSV 다운로드 및 다시하기 버튼 (중앙 정렬 및 동일 크기)
     st.markdown("---")
     st.markdown("<h3 style='font-size: clamp(1.2rem, 3.8vw, 1.6rem); margin-bottom: 16px; text-align: center;'>💾 진단 리포트 저장 및 안내</h3>", unsafe_allow_html=True)
 
@@ -575,7 +575,6 @@ elif st.session_state.stage == "result":
     ])
     csv_data = report_df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
 
-    # [1, 2, 2, 1] 비율로 가운데 2개 컬럼을 1:1 동일한 크기로 생성하여 중앙 정렬
     pad_l, btn_c1, btn_c2, pad_r = st.columns([1, 2, 2, 1])
 
     with btn_c1:
