@@ -1,6 +1,6 @@
 """
-프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test) - 모바일 화면 최적화
-설명: 스마트폰 화면 폭에 맞춰 사진 크기가 자동 축소(clamp 240px~340px)되는 완전 반응형 대시보드
+프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test) - 모던 서베이 카드 UI 적용
+설명: 질문이 중앙에 크고 굵게 배치되고, 1~5점 척도가 깔끔한 사각형 카드(그리드) 형태로 제공되는 대시보드
 실행 명령어: streamlit run app.py
 """
 import platform
@@ -25,7 +25,7 @@ else:
 plt.rcParams["axes.unicode_minus"] = False
 
 # --------------------------------------------------
-# 1. Streamlit 페이지 설정 및 반응형 글로벌 CSS 주입
+# 1. Streamlit 페이지 설정 및 커스텀 카드 CSS 주입
 # --------------------------------------------------
 st.set_page_config(
     page_title="무역 직무 MBTI 진단소",
@@ -38,10 +38,10 @@ st.markdown("""
 <style>
 /* 뷰포트 맞춤 컨테이너 */
 .main .block-container {
-    max-width: 900px !important;
-    padding-left: clamp(1rem, 4vw, 2.2rem) !important;
-    padding-right: clamp(1rem, 4vw, 2.2rem) !important;
-    padding-top: clamp(1rem, 2.5vw, 2rem) !important;
+    max-width: 820px !important;
+    padding-left: clamp(1rem, 3.5vw, 2.5rem) !important;
+    padding-right: clamp(1rem, 3.5vw, 2.5rem) !important;
+    padding-top: clamp(1.2rem, 3vw, 2.2rem) !important;
 }
 
 /* 유동적 헤딩 글자 크기 */
@@ -50,13 +50,13 @@ st.markdown("""
     font-weight: 800 !important;
     text-align: center;
     line-height: 1.35;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.8rem;
     word-break: keep-all;
 }
 
-/* 카드 UI 반응형 패딩 */
+/* 이미지 카드 UI */
 .responsive-card {
-    padding: clamp(15px, 3.2vw, 26px) !important;
+    padding: clamp(15px, 3.2vw, 24px) !important;
     border-radius: 14px !important;
     margin-bottom: 18px !important;
     box-shadow: 0 4px 18px rgba(0,0,0,0.06) !important;
@@ -64,23 +64,64 @@ st.markdown("""
     word-break: keep-all;
 }
 
-/* 문항 글자 반응형 */
-.question-text {
-    font-size: clamp(1.02rem, 3vw, 1.35rem) !important;
-    line-height: 1.55 !important;
-    font-weight: 700 !important;
-    margin-top: 12px !important;
+/* 📌 [디자인 반영] 질문 상자: 중앙 정렬 & 또렷한 글씨 */
+.quiz-question-container {
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 30px;
+    padding: 10px;
+}
+.quiz-badge {
+    display: inline-block;
+    background-color: #EBF5FB;
+    color: #2980B9;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+.quiz-question-title {
+    font-size: clamp(1.25rem, 3.8vw, 1.7rem);
+    font-weight: 800;
+    color: #1A252F;
+    line-height: 1.45;
     word-break: keep-all;
+    max-width: 700px;
+    margin: 0 auto;
 }
 
-/* 모바일 화면에서 버튼 간격 최적화 */
-@media (max-width: 640px) {
-    div[data-testid="column"] {
-        margin-bottom: 8px !important;
-    }
-    .stRadio div[role="radiogroup"] {
-        gap: 6px !important;
-    }
+/* 📌 [디자인 반영] 선택지 버튼을 둥근 사각 카드 박스로 스타일링 */
+div[data-testid="stButton"] > button {
+    width: 100%;
+    min-height: 56px;
+    background-color: #FFFFFF !important;
+    color: #2C3E50 !important;
+    border: 1.8px solid #E2E8F0 !important;
+    border-radius: 12px !important;
+    font-size: clamp(0.95rem, 2.6vw, 1.05rem) !important;
+    font-weight: 600 !important;
+    padding: 12px 16px !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-bottom: 8px !important;
+}
+
+/* 마우스 올렸을 때(Hover): 이미지처럼 하늘색 테두리 및 은은한 그림자 */
+div[data-testid="stButton"] > button:hover {
+    border-color: #38BDF8 !important;
+    color: #0284C7 !important;
+    background-color: #F0F9FF !important;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15) !important;
+    transform: translateY(-1.5px);
+}
+
+/* 이전 버튼 등 보조 버튼 스타일 */
+.nav-btn div[data-testid="stButton"] > button {
+    background-color: #F8FAFC !important;
+    border: 1px solid #CBD5E1 !important;
+    color: #64748B !important;
+    min-height: 44px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -165,12 +206,13 @@ QUESTIONS = [
     {"id": 20, "cat": "법률/관세 및 금융", "q": "수출환어음 매입(네고) 시 은행의 하자 지적을 받지 않도록 금융 서류를 빈틈없이 검토한다.", "job": "무역금융/외환관리", "weight": 2.5}
 ]
 
-SCALE_OPTIONS = [
-    (1, "1. 전혀 아님"),
-    (2, "2. 아님"),
-    (3, "3. 보통"),
-    (4, "4. 그렇다"),
-    (5, "5. 매우 그렇다")
+# 5단계 선택지 텍스트 정의
+CARD_OPTIONS = [
+    (1, "전혀 아니다"),
+    (2, "아닌 편이다"),
+    (3, "보통이다"),
+    (4, "그런 편이다"),
+    (5, "매우 그렇다")
 ]
 
 # --------------------------------------------------
@@ -183,21 +225,14 @@ if "q_index" not in st.session_state:
 if "answers" not in st.session_state:
     st.session_state.answers = {q["id"]: 3 for q in QUESTIONS}
 
-def next_question_callback(q_id):
-    chosen_val = st.session_state[f"radio_step_{q_id}"]
-    st.session_state.answers[q_id] = chosen_val
-    if st.session_state.q_index < len(QUESTIONS) - 1:
-        st.session_state.q_index += 1
-
 # --------------------------------------------------
-# 화면 1: 초기 인트로 화면 (모바일 맞춤 비율 사진)
+# 화면 1: 초기 인트로 화면
 # --------------------------------------------------
 if st.session_state.stage == "intro":
     st.markdown("<div class='main-title'>🌐 무역 직무 MBTI 센터 🌐</div>", unsafe_allow_html=True)
 
     intro_path = os.path.join(os.path.dirname(__file__), "intro.jpg")
     
-    # 📱 모바일/PC 반응형 이미지 처리 (최대 330px 내외로 제한하여 모바일에서도 적절한 크기 유지)
     if os.path.exists(intro_path):
         with open(intro_path, "rb") as img_file:
             b64_data = base64.b64encode(img_file.read()).decode()
@@ -242,58 +277,91 @@ if st.session_state.stage == "intro":
         st.rerun()
 
 # --------------------------------------------------
-# 화면 2: 1문항씩 게임형 진단 화면
+# 화면 2: 질문 상자 및 2열 카드 그리드 진단 화면 (디자인 전면 개편)
 # --------------------------------------------------
 elif st.session_state.stage == "test":
     curr_idx = st.session_state.q_index
     total_q = len(QUESTIONS)
     curr_q = QUESTIONS[curr_idx]
 
+    # 상단 진행 바 (Progress Bar)
     progress_val = (curr_idx + 1) / total_q
     st.progress(progress_val)
-    st.markdown(f"<p style='text-align: right; color: #888; font-weight: 700; font-size: clamp(0.8rem, 2.8vw, 0.95rem); margin-top: 4px;'>진행도: {curr_idx + 1} / {total_q} 문항</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align: right; color: #888; font-weight: 700; font-size: 0.85rem; margin-top: 4px;'>{curr_idx + 1} / {total_q}</p>", unsafe_allow_html=True)
 
+    # 📌 이미지 형태의 중앙 집중형 질문 타이틀
     st.markdown(
         f"""
-        <div class='responsive-card' style='border: 2px solid #3498DB;'>
-            <span style="background-color: #3498DB; color: white; padding: 4px 10px; border-radius: 16px; font-size: clamp(0.75rem, 2.5vw, 0.85rem); font-weight: bold;">
-                {curr_q['cat']}
-            </span>
-            <div class='question-text'>* {curr_q['q']}</div>
+        <div class="quiz-question-container">
+            <span class="quiz-badge">{curr_q['cat']}</span>
+            <div class="quiz-question-title">{curr_q['q']}</div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-    saved_val = st.session_state.answers.get(curr_q["id"], 3)
-    
-    st.radio(
-        label=f"문항_{curr_q['id']}_선택",
-        options=[opt[0] for opt in SCALE_OPTIONS],
-        format_func=lambda x: [opt[1] for opt in SCALE_OPTIONS if opt[0] == x][0],
-        index=saved_val - 1,
-        key=f"radio_step_{curr_q['id']}",
-        on_change=next_question_callback,
-        args=(curr_q["id"],),
-        horizontal=True,
-        label_visibility="collapsed"
-    )
+    # 📌 이미지 속 사각 카드(Button Grid) 배치 (2열 그리드 + 가운데 1개)
+    # Row 1 (1점, 2점)
+    r1_col1, r1_col2 = st.columns(2)
+    with r1_col1:
+        if st.button(CARD_OPTIONS[0][1], key=f"btn_score_1_{curr_q['id']}"):
+            st.session_state.answers[curr_q["id"]] = 1
+            if curr_idx < total_q - 1:
+                st.session_state.q_index += 1
+                st.rerun()
+            else:
+                st.session_state.stage = "result"
+                st.rerun()
+    with r1_col2:
+        if st.button(CARD_OPTIONS[1][1], key=f"btn_score_2_{curr_q['id']}"):
+            st.session_state.answers[curr_q["id"]] = 2
+            if curr_idx < total_q - 1:
+                st.session_state.q_index += 1
+                st.rerun()
+            else:
+                st.session_state.stage = "result"
+                st.rerun()
+
+    # Row 2 (3점, 4점)
+    r2_col1, r2_col2 = st.columns(2)
+    with r2_col1:
+        if st.button(CARD_OPTIONS[2][1], key=f"btn_score_3_{curr_q['id']}"):
+            st.session_state.answers[curr_q["id"]] = 3
+            if curr_idx < total_q - 1:
+                st.session_state.q_index += 1
+                st.rerun()
+            else:
+                st.session_state.stage = "result"
+                st.rerun()
+    with r2_col2:
+        if st.button(CARD_OPTIONS[3][1], key=f"btn_score_4_{curr_q['id']}"):
+            st.session_state.answers[curr_q["id"]] = 4
+            if curr_idx < total_q - 1:
+                st.session_state.q_index += 1
+                st.rerun()
+            else:
+                st.session_state.stage = "result"
+                st.rerun()
+
+    # Row 3 (5점: 단독 전폭 또는 중앙 배치)
+    if st.button(CARD_OPTIONS[4][1], key=f"btn_score_5_{curr_q['id']}"):
+        st.session_state.answers[curr_q["id"]] = 5
+        if curr_idx < total_q - 1:
+            st.session_state.q_index += 1
+            st.rerun()
+        else:
+            st.session_state.stage = "result"
+            st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    btn_col1, btn_col2 = st.columns([1, 1])
-
-    with btn_col1:
-        if curr_idx > 0:
-            if st.button("⬅️ 이전 문제", use_container_width=True):
-                st.session_state.q_index -= 1
-                st.rerun()
-
-    with btn_col2:
-        if curr_idx == total_q - 1:
-            if st.button("🚀 최종 제출", use_container_width=True, type="primary"):
-                st.session_state.stage = "result"
-                st.rerun()
+    # 하단 내비게이션 (이전 문제 버튼)
+    if curr_idx > 0:
+        st.markdown("<div class='nav-btn'>", unsafe_allow_html=True)
+        if st.button("⬅️ 이전 질문으로", use_container_width=True):
+            st.session_state.q_index -= 1
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------------------------------
 # 화면 3: 최종 진단 결과 화면
