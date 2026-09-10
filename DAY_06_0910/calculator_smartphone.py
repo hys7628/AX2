@@ -2,13 +2,13 @@ import streamlit as st
 import requests
 
 # ----------------------------------------------------------------------
-# 1. 페이지 설정 및 완벽한 원형 키패드 복원 CSS
+# 1. 페이지 설정 및 이미지 싱크로율 100% 키패드 CSS
 # ----------------------------------------------------------------------
 st.set_page_config(page_title="환율 계산기", page_icon="✦", layout="centered")
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
 
     /* 바깥 배경: 샴페인 베이지 */
     .stApp, html, body {
@@ -18,28 +18,28 @@ st.markdown("""
 
     header, footer { visibility: hidden !important; height: 0 !important; }
 
-    /* 스마트폰 기기 프레임 (한 화면 쏙 맞춤) */
+    /* 스마트폰 기기 프레임 */
     .block-container {
         width: 94vw !important;
-        max-width: 380px !important;
-        background: #09090b !important;
-        border: clamp(6px, 2vw, 9px) solid #c9a598 !important; /* 로즈골드 메탈 베젤 */
-        border-radius: clamp(32px, 9vw, 46px) !important;
+        max-width: 385px !important;
+        background: #000000 !important;
+        border: clamp(6px, 2vw, 9px) solid #c9a598 !important;
+        border-radius: clamp(34px, 9vw, 48px) !important;
         box-shadow: 
             0 0 0 2px #5a453f,
-            0 20px 50px rgba(0, 0, 0, 0.45) !important;
-        padding: 10px 14px 16px 14px !important;
+            0 25px 60px rgba(0, 0, 0, 0.5) !important;
+        padding: 12px 16px 20px 16px !important;
         margin: 4px auto !important;
         box-sizing: border-box !important;
     }
 
     /* 상단 다이내믹 아일랜드 */
     .dynamic-island {
-        width: 72px;
-        height: 18px;
+        width: 76px;
+        height: 19px;
         background-color: #000000;
-        border-radius: 12px;
-        margin: 0 auto 4px auto;
+        border-radius: 14px;
+        margin: 0 auto 6px auto;
         border: 1.5px solid #1c1c1e;
         display: flex;
         align-items: center;
@@ -63,7 +63,7 @@ st.markdown("""
     .top-star {
         color: #d8b2a7;
         font-size: 11px;
-        margin-bottom: 1px;
+        margin-bottom: 2px;
     }
     .main-title {
         font-family: 'Cormorant Garamond', serif !important;
@@ -90,16 +90,16 @@ st.markdown("""
     /* 국가 선택 셀렉트박스 */
     div[data-testid="stSelectbox"] label {
         color: #d9bfb7 !important;
-        font-size: 10px !important;
+        font-size: 11px !important;
         font-weight: 600 !important;
-        margin-bottom: 1px !important;
+        margin-bottom: 2px !important;
     }
     div[data-baseweb="select"] > div {
-        background: linear-gradient(180deg, #181517 0%, #100e10 100%) !important;
-        border-radius: 16px !important;
-        border: 1px solid #735952 !important;
-        min-height: 32px !important;
-        height: 32px !important;
+        background: linear-gradient(180deg, #161415 0%, #0d0c0d 100%) !important;
+        border-radius: 18px !important;
+        border: 1px solid #634d47 !important;
+        min-height: 34px !important;
+        height: 34px !important;
     }
     div[data-baseweb="select"] span {
         color: #f5eae7 !important;
@@ -113,21 +113,21 @@ st.markdown("""
     /* 디스플레이 화면 */
     .display-box {
         text-align: right;
-        padding: 2px 8px 6px 8px;
+        padding: 4px 8px 8px 8px;
         margin-bottom: 4px;
     }
     .amount-text {
         font-family: 'Cormorant Garamond', serif;
-        font-size: clamp(26px, 7.5vw, 34px);
-        font-weight: 600;
+        font-size: clamp(30px, 8.5vw, 40px);
+        font-weight: 500;
         color: #ffffff;
         line-height: 1;
     }
     .currency-tag {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
         color: #b09187;
-        margin-left: 4px;
+        margin-left: 6px;
     }
     .divider-star {
         display: flex;
@@ -135,27 +135,27 @@ st.markdown("""
         justify-content: center;
         position: relative;
         height: 1px;
-        background: linear-gradient(90deg, transparent, #84675e, transparent);
-        margin: 6px 0;
+        background: linear-gradient(90deg, transparent, #74574e, transparent);
+        margin: 8px 0;
     }
     .divider-star::after {
         content: "✦";
         position: absolute;
         color: #e5b9ad;
-        font-size: 9px;
-        background: #09090b;
-        padding: 0 4px;
+        font-size: 10px;
+        background: #000000;
+        padding: 0 5px;
     }
 
-    /* 3열 수평 블록 정렬 */
+    /* 3열 수평 블록 그리드 */
     div[data-testid="stHorizontalBlock"] {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         align-items: center !important;
         justify-content: space-around !important;
-        gap: 6px !important;
-        margin-bottom: 8px !important;
+        gap: 10px !important;
+        margin-bottom: 10px !important;
         width: 100% !important;
     }
     div[data-testid="stColumn"] {
@@ -166,7 +166,9 @@ st.markdown("""
         align-items: center !important;
     }
 
-    /* [핵심] 완벽한 원형 버튼 고정 (aspect-ratio + border-radius 50%) */
+    /* ---------------------------------------------------- */
+    /* [사진 싱크로율 키패드 공통 원형 세팅] */
+    /* ---------------------------------------------------- */
     div[data-testid="stButton"] {
         width: 100% !important;
         display: flex !important;
@@ -176,65 +178,72 @@ st.markdown("""
         padding: 0 !important;
     }
     div[data-testid="stButton"] > button {
-        width: clamp(54px, 15vw, 68px) !important;
-        height: clamp(54px, 15vw, 68px) !important;
-        min-width: clamp(54px, 15vw, 68px) !important;
-        min-height: clamp(54px, 15vw, 68px) !important;
-        max-width: clamp(54px, 15vw, 68px) !important;
-        max-height: clamp(54px, 15vw, 68px) !important;
-        aspect-ratio: 1 / 1 !important; /* 👈 절대 찌그러지지 않는 1:1 정원형 */
-        border-radius: 50% !important;   /* 👈 완벽한 동그라미 */
+        width: clamp(56px, 16vw, 70px) !important;
+        height: clamp(56px, 16vw, 70px) !important;
+        min-width: clamp(56px, 16vw, 70px) !important;
+        min-height: clamp(56px, 16vw, 70px) !important;
+        max-width: clamp(56px, 16vw, 70px) !important;
+        max-height: clamp(56px, 16vw, 70px) !important;
+        aspect-ratio: 1 / 1 !important;
+        border-radius: 50% !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         margin: 0 auto !important;
         padding: 0 !important;
-        transition: transform 0.08s ease, opacity 0.1s ease !important;
+        transition: transform 0.08s ease, filter 0.1s ease !important;
     }
     div[data-testid="stButton"] > button:active {
-        transform: scale(0.92) !important;
-        opacity: 0.75 !important;
+        transform: scale(0.93) !important;
+        filter: brightness(1.15) !important;
     }
 
-    /* 숫자 원형 버튼: 블랙 펄 3D 구체 */
+    /* ---------------------------------------------------- */
+    /* 1. 이미지 스타일: 반투명 글래스 입체 구체 숫자 버튼 (1~9, 0) */
+    /* ---------------------------------------------------- */
     .btn-num div[data-testid="stButton"] > button {
-        background: radial-gradient(circle at 35% 30%, #2f2a29 0%, #151314 65%, #0d0c0d 100%) !important;
-        border: 1px solid rgba(220, 180, 170, 0.45) !important;
+        background: radial-gradient(circle at 45% 35%, rgba(68, 54, 52, 0.55) 0%, rgba(20, 16, 17, 0.85) 60%, #080607 100%) !important;
+        border: 1.2px solid rgba(226, 185, 175, 0.45) !important;
         box-shadow: 
-            inset 0 2px 4px rgba(255, 240, 235, 0.25),
-            inset 0 -2px 6px rgba(0, 0, 0, 0.9),
-            0 4px 12px rgba(0, 0, 0, 0.6) !important;
+            inset 0 3px 6px rgba(255, 235, 230, 0.4),          /* 상단 화이트 림 반사 */
+            inset 0 -3px 8px rgba(0, 0, 0, 0.9),              /* 하단 깊은 앰비언트 */
+            0 0 10px rgba(184, 137, 126, 0.22),               /* 로즈골드 글로우 */
+            0 6px 14px rgba(0, 0, 0, 0.6) !important;
     }
     .btn-num div[data-testid="stButton"] > button p,
     .btn-num div[data-testid="stButton"] > button span,
     .btn-num div[data-testid="stButton"] > button div,
     .btn-num div[data-testid="stButton"] > button * {
-        color: #F8ECE8 !important;
-        font-family: 'Cormorant Garamond', serif !important;
-        font-size: clamp(26px, 7vw, 32px) !important;
-        font-weight: 600 !important;
+        color: #FAF5F3 !important;
+        font-family: 'Cormorant Garamond', Georgia, serif !important;
+        font-size: clamp(28px, 8vw, 36px) !important;
+        font-weight: 500 !important;
         line-height: 1 !important;
         margin: 0 !important;
         padding: 0 !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
     }
 
-    /* 기능 원형 버튼 (C, ⌫): 메탈릭 로즈골드 3D 구체 */
+    /* ---------------------------------------------------- */
+    /* 2. 이미지 스타일: 메탈릭 로즈골드 3D 돔 버튼 (C, ⌧) */
+    /* ---------------------------------------------------- */
     .btn-fn div[data-testid="stButton"] > button {
-        background: radial-gradient(circle at 35% 30%, #F5D7CE 0%, #D4A99D 55%, #A87A6E 100%) !important;
-        border: 1px solid #FFE4DC !important;
+        background: radial-gradient(circle at 40% 35%, #F5D3C8 0%, #D4A396 48%, #A47265 90%, #7E5146 100%) !important;
+        border: 1px solid #FFE7E0 !important;
         box-shadow: 
-            inset 0 2px 5px rgba(255, 255, 255, 0.7),
-            inset 0 -3px 6px rgba(110, 60, 50, 0.4),
-            0 4px 14px rgba(190, 130, 120, 0.3) !important;
+            inset 0 3px 5px rgba(255, 255, 255, 0.75),         /* 상단 메탈릭 하이라이트 */
+            inset 0 -4px 7px rgba(80, 42, 34, 0.55),          /* 하단 립 쉐도우 */
+            0 0 12px rgba(212, 163, 150, 0.35),               /* 로즈골드 아우터 글로우 */
+            0 6px 16px rgba(0, 0, 0, 0.5) !important;
     }
     .btn-fn div[data-testid="stButton"] > button p,
     .btn-fn div[data-testid="stButton"] > button span,
     .btn-fn div[data-testid="stButton"] > button div,
     .btn-fn div[data-testid="stButton"] > button * {
-        color: #261613 !important;
-        font-family: 'Cormorant Garamond', serif !important;
-        font-size: clamp(20px, 5.5vw, 25px) !important;
-        font-weight: 700 !important;
+        color: #241411 !important;
+        font-family: 'Cormorant Garamond', Georgia, serif !important;
+        font-size: clamp(23px, 6.5vw, 29px) !important;
+        font-weight: 600 !important;
         line-height: 1 !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -242,11 +251,11 @@ st.markdown("""
 
     /* 하단 홈 바 */
     .home-bar {
-        width: 80px;
+        width: 82px;
         height: 3.5px;
         background: linear-gradient(90deg, #99786f, #d8b2a7, #99786f);
         border-radius: 10px;
-        margin: 10px auto 0 auto;
+        margin: 14px auto 0 auto;
         opacity: 0.8;
     }
 </style>
@@ -367,7 +376,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------------------------
-# 6. 완벽한 원형 3D 키패드 배치 (1~9, C, 0, ⌫)
+# 6. 이미지 싱크로율 100% 3D 키패드 배치 (1~9, C, 0, ⌧)
 # ----------------------------------------------------------------------
 # 1행: 1, 2, 3
 r1 = st.columns(3)
@@ -393,7 +402,7 @@ for idx, num in enumerate([7, 8, 9]):
         st.button(str(num), key=f"k_{num}", on_click=press_action, args=(num, from_code, to_code))
         st.markdown('</div>', unsafe_allow_html=True)
 
-# 4행: C (로즈골드 원형), 0 (블랙펄 원형), ⌫ (로즈골드 원형)
+# 4행: C (로즈골드 3D 돔), 0 (글래스 구체), ⌧ (로즈골드 3D 돔)
 r4 = st.columns(3)
 with r4[0]:
     st.markdown('<div class="btn-fn">', unsafe_allow_html=True)
@@ -405,7 +414,7 @@ with r4[1]:
     st.markdown('</div>', unsafe_allow_html=True)
 with r4[2]:
     st.markdown('<div class="btn-fn">', unsafe_allow_html=True)
-    st.button("⌫", key="k_back", on_click=press_action, args=("back", from_code, to_code))
+    st.button("⌧", key="k_back", on_click=press_action, args=("back", from_code, to_code))
     st.markdown('</div>', unsafe_allow_html=True)
 
 # 하단 홈 바
