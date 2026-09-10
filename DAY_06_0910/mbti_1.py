@@ -1,12 +1,12 @@
 """
-프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test) - 완전 반응형 모바일/웹 지원
-설명: 모바일(스마트폰), 태블릿, 데스크톱 화면 크기에 따라 UI가 유동적으로 변하는 20문항 진단 대시보드
-수정사항: 시작 화면 이미지를 1:2:1 비율 컬럼의 가운데(2 위치)에 width=600으로 배치
+프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test) - 모바일 화면 최적화
+설명: 스마트폰 화면 폭에 맞춰 사진 크기가 자동 축소(clamp 240px~340px)되는 완전 반응형 대시보드
 실행 명령어: streamlit run app.py
 """
 import platform
 import io
 import os
+import base64
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -38,27 +38,27 @@ st.markdown("""
 <style>
 /* 뷰포트 맞춤 컨테이너 */
 .main .block-container {
-    max-width: 950px !important;
-    padding-left: clamp(1rem, 4vw, 2.5rem) !important;
-    padding-right: clamp(1rem, 4vw, 2.5rem) !important;
-    padding-top: clamp(1.2rem, 3vw, 2.5rem) !important;
+    max-width: 900px !important;
+    padding-left: clamp(1rem, 4vw, 2.2rem) !important;
+    padding-right: clamp(1rem, 4vw, 2.2rem) !important;
+    padding-top: clamp(1rem, 2.5vw, 2rem) !important;
 }
 
 /* 유동적 헤딩 글자 크기 */
 .main-title {
-    font-size: clamp(1.4rem, 4.5vw, 2.2rem) !important;
+    font-size: clamp(1.35rem, 4.2vw, 2.1rem) !important;
     font-weight: 800 !important;
     text-align: center;
     line-height: 1.35;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.6rem;
     word-break: keep-all;
 }
 
 /* 카드 UI 반응형 패딩 */
 .responsive-card {
-    padding: clamp(16px, 3.5vw, 28px) !important;
+    padding: clamp(15px, 3.2vw, 26px) !important;
     border-radius: 14px !important;
-    margin-bottom: 20px !important;
+    margin-bottom: 18px !important;
     box-shadow: 0 4px 18px rgba(0,0,0,0.06) !important;
     background: rgba(255, 255, 255, 0.03);
     word-break: keep-all;
@@ -66,10 +66,10 @@ st.markdown("""
 
 /* 문항 글자 반응형 */
 .question-text {
-    font-size: clamp(1.05rem, 3.2vw, 1.4rem) !important;
+    font-size: clamp(1.02rem, 3vw, 1.35rem) !important;
     line-height: 1.55 !important;
     font-weight: 700 !important;
-    margin-top: 14px !important;
+    margin-top: 12px !important;
     word-break: keep-all;
 }
 
@@ -190,20 +190,38 @@ def next_question_callback(q_id):
         st.session_state.q_index += 1
 
 # --------------------------------------------------
-# 화면 1: 초기 인트로 화면 (1:2:1 컬럼의 2 위치에 width=600 배치)
+# 화면 1: 초기 인트로 화면 (모바일 맞춤 비율 사진)
 # --------------------------------------------------
 if st.session_state.stage == "intro":
     st.markdown("<div class='main-title'>🌐 무역 직무 MBTI 센터 🌐</div>", unsafe_allow_html=True)
 
     intro_path = os.path.join(os.path.dirname(__file__), "intro.jpg")
     
-    # 📌 1:2:1 컬럼 생성 후 가운데 2번 컬럼(img_col2)에 width=600 사진 배치
-    img_col1, img_col2, img_col3 = st.columns([1, 2, 1])
-    with img_col2:
-        if os.path.exists(intro_path):
-            st.image(intro_path, caption="직무...준비되셨습니까?", width=600)
-        else:
-            st.image("https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1000&auto=format&fit=crop&q=80", caption="Global Trade Navigator", width=600)
+    # 📱 모바일/PC 반응형 이미지 처리 (최대 330px 내외로 제한하여 모바일에서도 적절한 크기 유지)
+    if os.path.exists(intro_path):
+        with open(intro_path, "rb") as img_file:
+            b64_data = base64.b64encode(img_file.read()).decode()
+        img_tag_src = f"data:image/jpeg;base64,{b64_data}"
+    else:
+        img_tag_src = "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1000&auto=format&fit=crop&q=80"
+
+    st.markdown(
+        f"""
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 10px auto 16px auto;">
+            <div style="
+                width: 100%;
+                max-width: clamp(230px, 68vw, 330px);
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            ">
+                <img src="{img_tag_src}" style="width: 100%; height: auto; display: block;" alt="직무 준비">
+            </div>
+            <p style="font-size: clamp(0.75rem, 2.3vw, 0.85rem); color: #888; margin-top: 6px; text-align: center;">직무...준비되셨습니까?</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     
     st.markdown("""
     <div class='responsive-card' style='border: 1px solid #e0e0e0;'>
