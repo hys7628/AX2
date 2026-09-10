@@ -1,0 +1,553 @@
+"""
+프로젝트: 무역 직무 적합도 MBTI 대시보드 (PC 모니터 최적화 버전)
+설명: PC 와이드 화면 비율에 맞춰 2열(Two-Column) 그리드로 구성한 인터랙티브 대시보드
+실행 명령어: streamlit run app_pc.py
+"""
+import platform
+import io
+import os
+import base64
+import streamlit as st
+import pandas as pd
+import numpy as np
+
+# --------------------------------------------------
+# 1. Streamlit 페이지 설정 (PC 와이드 모드)
+# --------------------------------------------------
+st.set_page_config(
+    page_title="무역 직무 MBTI 진단소 (PC Edition)",
+    page_icon="🌐",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+st.markdown("""
+<style>
+/* PC 화면 너비에 맞춘 와이드 컨테이너 설정 */
+.main .block-container {
+    max-width: 1280px !important;
+    padding-left: 3rem !important;
+    padding-right: 3rem !important;
+    padding-top: 2rem !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", sans-serif !important;
+}
+
+/* PC 메인 타이틀 */
+.pc-main-title {
+    font-size: 2.3rem !important;
+    font-weight: 800 !important;
+    text-align: center;
+    color: #0F172A;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.5px;
+}
+
+/* 데스크톱 카드 스타일 */
+.pc-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    word-break: keep-all;
+}
+
+/* 질문 타이틀 (PC용) */
+.pc-quiz-title {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #1E293B;
+    line-height: 1.45;
+    word-break: keep-all;
+    margin-top: 15px;
+}
+
+/* 선택지 버튼 (PC 모니터 마우스 클릭에 최적화된 높이와 호버) */
+div[data-testid="stButton"] > button {
+    width: 100%;
+    min-height: 60px;
+    background-color: #FFFFFF !important;
+    color: #1E293B !important;
+    border: 1.8px solid #CBD5E1 !important;
+    border-radius: 12px !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    padding: 14px 20px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-bottom: 12px !important;
+}
+
+div[data-testid="stButton"] > button:hover {
+    border-color: #0284C7 !important;
+    color: #0284C7 !important;
+    background-color: #F0F9FF !important;
+    box-shadow: 0 6px 16px rgba(2, 132, 199, 0.15) !important;
+    transform: translateY(-2px);
+}
+
+/* PC 버전 한글 깨짐 방지 네이티브 바 차트 */
+.pc-chart-container {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 24px 28px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+}
+.pc-chart-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.pc-chart-row:last-child {
+    margin-bottom: 0;
+}
+.pc-chart-label {
+    width: 140px;
+    min-width: 140px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #334155;
+    text-align: right;
+    padding-right: 18px;
+}
+.pc-chart-bar-bg {
+    flex-grow: 1;
+    background-color: #F1F5F9;
+    border-radius: 8px;
+    height: 28px;
+    overflow: hidden;
+}
+.pc-chart-bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.8s ease-out;
+}
+.pc-chart-value {
+    width: 70px;
+    min-width: 70px;
+    padding-left: 14px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0F172A;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# --------------------------------------------------
+# 2. 직무 정의 및 상세 정보
+# --------------------------------------------------
+TRADE_JOBS = {
+    "해외영업": {
+        "english": "Overseas Sales & Business Development",
+        "icon": "🌍",
+        "summary": "글로벌 시장을 무대로 신규 바이어를 발굴하고 수주를 이끌어내는 무역의 프론트 플레이어",
+        "core_skills": ["바이어 발굴 및 협상력", "비즈니스 외국어 회화", "시장 개척 의지 및 회복탄력성", "전시회 참가 및 세일즈 피칭"],
+        "recommended_certs": ["국제무역사 1급", "무역영어 1급", "비즈니스 어학(TOEIC Speaking, OPIc)"],
+        "color": "#FF4B4B"
+    },
+    "무역사무/수출입관리": {
+        "english": "Trade Operations & Compliance Support",
+        "icon": "📑",
+        "summary": "계약 체결부터 대금 회수까지 서류의 무결성을 유지하며 수출입 전 과정을 조율하는 프로세스 마스터",
+        "core_skills": ["L/C(신용장) 서류 심사 능력", "인코텀즈(Incoterms 2020) 이해", "수출입 선적서류(C/I, P/L) 작성의 꼼꼼함", "수금 일정 관리"],
+        "recommended_certs": ["국제무역사", "무역영어 1/2급", "전산회계운용사"],
+        "color": "#3498DB"
+    },
+    "포워딩/국제물류": {
+        "english": "Freight Forwarding & Supply Chain Logistics",
+        "icon": "🚢",
+        "summary": "화물이 공장에서 바이어 창고에 도착할 때까지 최적의 운송 경로와 운임을 설계하는 물류 코디네이터",
+        "core_skills": ["선사/항공사 부킹 및 스케줄링", "B/L(선하증권) 실무", "물류 클레임 및 긴급 상황 대처력", "복합운송 운임 견적 비교"],
+        "recommended_certs": ["물류관리사", "유통관리사 2급", "국제물류사"],
+        "color": "#2ECC71"
+    },
+    "글로벌 소싱/구매": {
+        "english": "Global Procurement & Sourcing",
+        "icon": "🔍",
+        "summary": "경쟁력 있는 글로벌 서플라이어를 발굴해 최적의 단가와 품질로 원자재 및 완제품을 조달하는 가치 창출자",
+        "core_skills": ["원가 분석(Cost Breakdown)", "공급업체 품질 감사(Audit)", "단가 인하 협상력", "공급망 단절(Supply Chain) 리스크 관리"],
+        "recommended_certs": ["CPIM/CSCP (APICS)", "국제무역사", "구매자재관리사(KPM)"],
+        "color": "#F39C12"
+    },
+    "통관/무역규제": {
+        "english": "Customs Brokerage & Trade Compliance",
+        "icon": "⚖️",
+        "summary": "수출입 통관 요건, HS Code 분류, FTA 원산지 관리를 통해 법적 리스크와 관세를 최적화하는 관세 전문가",
+        "core_skills": ["HS Code 6단위/10단위 품목 분류", "FTA 원산지 증명서(C/O) 발급", "외환거래법 및 대외무역법 숙지", "관세 환급 실무"],
+        "recommended_certs": ["관세사(전문자격)", "원산지관리사", "보세사"],
+        "color": "#9B59B6"
+    },
+    "무역금융/외환관리": {
+        "english": "Trade Finance & FX Risk Management",
+        "icon": "💳",
+        "summary": "수출환어음 매입, 결제 조건 협의, 환율 변동 위험을 헷지하여 무역 거래의 재무적 안전을 책임지는 금융 스페셜리스트",
+        "core_skills": ["수출입 금융(Usance, D/A, D/P, L/C Nego)", "선물환/외환 포지션 관리", "무역보험(K-SURE) 활용", "대금 미회수 채권 리스크 방어"],
+        "recommended_certs": ["외환전문역 1/2종", "CDCS(신용장전문가)", "투자자산운용사"],
+        "color": "#1ABC9C"
+    }
+}
+
+# --------------------------------------------------
+# 3. 20개 진단 문항 정의
+# --------------------------------------------------
+QUESTIONS = [
+    {"id": 1, "cat": "대인관계 및 영업", "q": "모르는 외국인 바이어에게 먼저 다가가 스몰토크를 건네고 관계를 맺는 것이 즐겁다.", "job": "해외영업", "weight": 2.5},
+    {"id": 2, "cat": "대인관계 및 영업", "q": "목표 매출과 수주 실적이 숫자로 명확히 보상받을 때 가장 큰 동기부여를 느낀다.", "job": "해외영업", "weight": 2.5},
+    {"id": 3, "cat": "대인관계 및 영업", "q": "해외 박람회 부스에 서서 하루 종일 고객 상담과 제품 피칭을 할 수 있는 에너지가 있다.", "job": "해외영업", "weight": 2.0},
+    {"id": 4, "cat": "대인관계 및 영업", "q": "공급선과의 팽팽한 가격 협상에서 양보하지 않고 최적의 단가를 이끌어내는 데 자신 있다.", "job": "글로벌 소싱/구매", "weight": 2.0},
+    {"id": 5, "cat": "서류 및 프로세스", "q": "계약서, 인보이스의 오탈자나 단어 하나의 오역도 절대 그냥 넘어가지 않고 잡아낸다.", "job": "무역사무/수출입관리", "weight": 2.5},
+    {"id": 6, "cat": "서류 및 프로세스", "q": "신용장(L/C) 상의 까다로운 선적 조건과 유효기일을 캘린더에 맞춰 체계적으로 통제하는 게 적성에 맞는다.", "job": "무역사무/수출입관리", "weight": 2.5},
+    {"id": 7, "cat": "서류 및 프로세스", "q": "예측 불가능한 돌발 영업보다는 명확한 매뉴얼과 정해진 절차대로 업무를 완결하는 것을 선호한다.", "job": "무역사무/수출입관리", "weight": 2.0},
+    {"id": 8, "cat": "서류 및 프로세스", "q": "법조문이나 관세율표를 찾아보며 규정에 부합하는지 팩트체크하는 과정이 흥미롭다.", "job": "통관/무역규제", "weight": 2.0},
+    {"id": 9, "cat": "물류 및 스케줄링", "q": "컨테이너 선박, 항공기, 내륙 트럭이 연결되는 복잡한 운송망 지도를 보면 가슴이 뛴다.", "job": "포워딩/국제물류", "weight": 2.5},
+    {"id": 10, "cat": "물류 및 스케줄링", "q": "태풍이나 항만 파업으로 선적 지연이 발생해도 빠르게 대체 선박을 찾아내는 순발력이 있다.", "job": "포워딩/국제물류", "weight": 2.5},
+    {"id": 11, "cat": "물류 및 스케줄링", "q": "여러 선사와 포워더의 운임 견적서를 비교해 최저 운임과 최단 리드타임을 도출하는 계산이 재밌다.", "job": "포워딩/국제물류", "weight": 2.0},
+    {"id": 12, "cat": "물류 및 스케줄링", "q": "실제 창고나 보세구역에 화물이 입출고되는 현장 동선과 패킹 상태를 확인하는 것을 좋아한다.", "job": "포워딩/국제물류", "weight": 2.0},
+    {"id": 13, "cat": "글로벌 소싱 및 시장조사", "q": "동일한 원자재라도 해외 사이트(알리바바 등)를 이 잡듯 뒤져 더 저렴한 제조사를 찾아낸다.", "job": "글로벌 소싱/구매", "weight": 2.5},
+    {"id": 14, "cat": "글로벌 소싱 및 시장조사", "q": "해외 제조 공장의 생산 공정과 불량률, 품질 인증을 분석하고 평가하는 일에 흥미가 있다.", "job": "글로벌 소싱/구매", "weight": 2.5},
+    {"id": 15, "cat": "글로벌 소싱 및 시장조사", "q": "환율, 유가, 글로벌 원자재 가격 변동 추이를 주기적으로 챙겨보고 향후 가격을 예측해 본다.", "job": "무역금융/외환관리", "weight": 2.0},
+    {"id": 16, "cat": "글로벌 소싱 및 시장조사", "q": "공급업체의 일방적인 납기 지연을 방지하기 위해 엄격한 지체상금 조항을 계약서에 넣는 편이다.", "job": "글로벌 소싱/구매", "weight": 2.0},
+    {"id": 17, "cat": "법률/관세 및 금융", "q": "복잡한 기계 부품의 재질과 기능을 따져 10단위 HS 품목분류 코드를 확정 짓는 퍼즐 같은 일이 매력적이다.", "job": "통관/무역규제", "weight": 2.5},
+    {"id": 18, "cat": "법률/관세 및 금융", "q": "각국 FTA 특혜관세 기준을 충족시켜 관세를 절감해 줄 때 보람을 느낀다.", "job": "통관/무역규제", "weight": 2.5},
+    {"id": 19, "cat": "법률/관세 및 금융", "q": "바이어의 부도나 대금 미지급 리스크를 사전에 차단하기 위해 신용조사와 무역보험을 철저히 챙긴다.", "job": "무역금융/외환관리", "weight": 2.5},
+    {"id": 20, "cat": "법률/관세 및 금융", "q": "수출환어음 매입(네고) 시 은행의 하자 지적을 받지 않도록 금융 서류를 빈틈없이 검토한다.", "job": "무역금융/외환관리", "weight": 2.5}
+]
+
+CARD_OPTIONS = [
+    (1, "🙅‍♂️ 전혀 아니다"),
+    (2, "🙁 아닌 편이다"),
+    (3, "😐 보통이다"),
+    (4, "🙂 그런 편이다"),
+    (5, "🙆‍♂️ 매우 그렇다")
+]
+
+# --------------------------------------------------
+# 4. 세션 상태 초기화
+# --------------------------------------------------
+if "stage" not in st.session_state:
+    st.session_state.stage = "intro"
+if "q_index" not in st.session_state:
+    st.session_state.q_index = 0
+if "answers" not in st.session_state:
+    st.session_state.answers = {q["id"]: 3 for q in QUESTIONS}
+
+# --------------------------------------------------
+# 화면 1: 초기 인트로 화면 (PC 2열 와이드 대시보드)
+# --------------------------------------------------
+if st.session_state.stage == "intro":
+    st.markdown("<div class='pc-main-title'>🌐 무역 직무 MBTI 진단 센터 (PC Edition) 🌐</div>", unsafe_allow_html=True)
+
+    intro_path = os.path.join(os.path.dirname(__file__), "intro.jpg")
+    if os.path.exists(intro_path):
+        with open(intro_path, "rb") as img_file:
+            b64_data = base64.b64encode(img_file.read()).decode()
+        img_tag_src = f"data:image/jpeg;base64,{b64_data}"
+    else:
+        img_tag_src = "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1000&auto=format&fit=crop&q=80"
+
+    # PC 와이드 2분할 레이아웃
+    col_left, col_right = st.columns([1.1, 1.2], gap="large")
+
+    with col_left:
+        st.markdown(
+            f"""
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="width: 100%; max-width: 480px; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.1);">
+                    <img src="{img_tag_src}" style="width: 100%; height: auto; display: block;" alt="직무 준비">
+                </div>
+                <p style="font-size: 0.95rem; color: #64748B; margin-top: 10px; font-weight: 600;">직무... 준비되셨습니까?</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with col_right:
+        st.markdown(
+            """
+            <div class='pc-card'>
+                <h3 style="margin-top: 0; color: #0F172A; font-size: 1.5rem; font-weight: 800;">
+                    &ldquo;무역학과 나와서 뭐 하지?&rdquo;<br>
+                    &ldquo;비전공자인데 어떤 무역 포지션이 맞을까?&rdquo;
+                </h3>
+                <hr style="border: 0.5px solid #E2E8F0; margin: 18px 0;">
+                <div style="font-size: 1.05rem; line-height: 1.8; color: #334155;">
+                    <p style="margin: 0;">10년 차 UI 전문가 <b>코식이</b>와</p>
+                    <p style="margin: 0;">20년 차 무역 전문가 <b>무식이</b>가 함께 설계한</p>
+                    <p style="margin: 0; font-weight: bold; color: #0284C7;">20문항 초정밀 직무 적합도 진단 대시보드입니다.</p>
+                </div>
+                <div style="background-color: #F8FAFC; border-radius: 10px; padding: 12px 18px; margin-top: 20px; font-size: 0.95rem; color: #64748B;">
+                    ⏱️ <b>진단 소요 시간</b>: 약 2 ~ 3분 &nbsp;|&nbsp; 척도: 1점(전혀 아님) ~ 5점(매우 그렇다)
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        st.write("")
+        if st.button("🚀 무역 직무 MBTI 진단 시작하기", use_container_width=True, type="primary"):
+            st.session_state.stage = "test"
+            st.session_state.q_index = 0
+            st.rerun()
+
+# --------------------------------------------------
+# 화면 2: 질문 진행 화면 (PC 좌우 분할 2열 레이아웃)
+# --------------------------------------------------
+elif st.session_state.stage == "test":
+    curr_idx = st.session_state.q_index
+    total_q = len(QUESTIONS)
+    curr_q = QUESTIONS[curr_idx]
+
+    # 상단 컨테이너선 항해 트랙
+    progress_pct = round(((curr_idx + 1) / total_q) * 100, 1)
+
+    st.markdown(
+        f"""
+        <div style="width: 100%; margin: 10px 0 30px 0;">
+            <div style="position: relative; width: 100%; height: 32px;">
+                <span style="
+                    position: absolute;
+                    left: calc({progress_pct}% - 16px);
+                    font-size: 28px;
+                    transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.2));
+                    user-select: none;
+                ">🚢</span>
+            </div>
+            <div style="
+                width: 100%; 
+                height: 10px; 
+                background-color: #E2E8F0; 
+                border-radius: 8px; 
+                overflow: hidden;
+            ">
+                <div style="
+                    width: {progress_pct}%; 
+                    height: 100%; 
+                    background: linear-gradient(90deg, #38BDF8 0%, #0284C7 100%);
+                    border-radius: 8px; 
+                    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                "></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                <span style="font-size: 0.95rem; color: #0284C7; font-weight: 700;">🌊 {progress_pct}% 순항 중</span>
+                <span style="font-size: 1rem; color: #475569; font-weight: 800;">{curr_idx + 1} / {total_q} 문항</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # PC 전용 2열 배치: 좌측은 질문 카드, 우측은 5개 선택지 박스
+    q_col1, q_col2 = st.columns([1.1, 1.1], gap="large")
+
+    with q_col1:
+        st.markdown(
+            f"""
+            <div class='pc-card' style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                <span style="
+                    display: inline-block;
+                    background-color: #EBF5FB;
+                    color: #0284C7;
+                    padding: 6px 16px;
+                    border-radius: 20px;
+                    font-size: 0.95rem;
+                    font-weight: 800;
+                    width: fit-content;
+                ">{curr_q['cat']}</span>
+                <div class="pc-quiz-title">
+                    Q{curr_idx + 1}.<br>{curr_q['q']}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with q_col2:
+        st.markdown("<p style='font-size: 1rem; color: #64748B; font-weight: 700; margin-bottom: 8px;'>가장 어울리는 답변을 클릭하세요</p>", unsafe_allow_html=True)
+        for score, label_text in CARD_OPTIONS:
+            if st.button(label_text, key=f"pc_btn_{score}_{curr_q['id']}", use_container_width=True):
+                st.session_state.answers[curr_q["id"]] = score
+                if curr_idx < total_q - 1:
+                    st.session_state.q_index += 1
+                    st.rerun()
+                else:
+                    st.session_state.stage = "result"
+                    st.rerun()
+
+        if curr_idx > 0:
+            st.markdown("<div class='nav-btn' style='margin-top: 10px;'>", unsafe_allow_html=True)
+            if st.button("⬅️ 이전 질문으로 돌아가기", use_container_width=True):
+                st.session_state.q_index -= 1
+                st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
+
+# --------------------------------------------------
+# 화면 3: 최종 진단 결과 화면 (PC 와이드 2열 대시보드)
+# --------------------------------------------------
+elif st.session_state.stage == "result":
+    job_scores = {job: 0.0 for job in TRADE_JOBS.keys()}
+    job_max_possible = {job: 0.0 for job in TRADE_JOBS.keys()}
+
+    for item in QUESTIONS:
+        q_id = item["id"]
+        target_job = item["job"]
+        weight = item["weight"]
+        user_val = st.session_state.answers[q_id]
+
+        job_scores[target_job] += user_val * weight
+        job_max_possible[target_job] += 5.0 * weight
+
+    job_percentages = {}
+    for job in TRADE_JOBS.keys():
+        job_percentages[job] = round((job_scores[job] / job_max_possible[job]) * 100, 1)
+
+    sorted_jobs = sorted(job_percentages.items(), key=lambda x: x[1], reverse=True)
+    top_job, top_pct = sorted_jobs[0]
+    top_info = TRADE_JOBS[top_job]
+
+    # 파도 트랜지션 애니메이션
+    ocean_wave_animation_html = """
+    <style>
+    .wave-transition-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        z-index: 999999; pointer-events: none; overflow: hidden;
+        animation: fadeOutContainer 2.0s forwards ease-in-out;
+    }
+    .wave-layer {
+        position: absolute; left: -50%; width: 200%; height: 140vh;
+        border-radius: 43% 47% 44% 46%; bottom: -150vh;
+    }
+    .wave1 {
+        background: linear-gradient(180deg, rgba(56, 189, 248, 0.85) 0%, rgba(2, 132, 199, 0.95) 100%);
+        animation: waveRoll 1.9s forwards cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1;
+    }
+    .wave2 {
+        background: linear-gradient(180deg, rgba(14, 165, 233, 0.75) 0%, rgba(3, 105, 161, 0.9) 100%);
+        animation: waveRoll 1.9s forwards cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
+        border-radius: 46% 44% 47% 43%; z-index: 2;
+    }
+    @keyframes waveRoll {
+        0% { bottom: -140vh; transform: rotate(0deg); }
+        48% { bottom: -10vh; transform: rotate(180deg); }
+        100% { bottom: 120vh; transform: rotate(360deg); }
+    }
+    @keyframes fadeOutContainer {
+        0% { opacity: 1; }
+        85% { opacity: 0.95; }
+        100% { opacity: 0; visibility: hidden; }
+    }
+    </style>
+    <div class="wave-transition-overlay">
+        <div class="wave-layer wave1"></div>
+        <div class="wave-layer wave2"></div>
+    </div>
+    """
+    st.markdown(ocean_wave_animation_html, unsafe_allow_html=True)
+
+    st.markdown("<div class='pc-main-title'>🎯 무역 직무 적합도 최종 분석 결과</div>", unsafe_allow_html=True)
+
+    # 1열 & 2열 나란히 배치: 추천 직무 카드 vs 6대 직무 비교 차트
+    res_col1, res_col2 = st.columns([1.0, 1.2], gap="large")
+
+    with res_col1:
+        st.markdown(
+            f"""
+            <div class='pc-card' style="border: 2.5px solid {top_info['color']}; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                <div style="font-size: 60px; margin-bottom: 8px;">{top_info['icon']}</div>
+                <h2 style="color: {top_info['color']}; font-size: 2.2rem; margin-bottom: 4px;">{top_job}</h2>
+                <p style="font-size: 1.05rem; color: #64748B; font-weight: 600; margin-bottom: 12px;">{top_info['english']}</p>
+                <div style="background-color: #F8FAFC; border-radius: 12px; padding: 10px; margin: 8px 0;">
+                    <span style="font-size: 1.25rem; font-weight: 800;">적합 매칭도: </span>
+                    <span style="font-size: 1.6rem; font-weight: 900; color: {top_info['color']};">{top_pct}%</span>
+                </div>
+                <p style="font-size: 1.05rem; line-height: 1.7; text-align: center; margin-top: 14px; color: #334155;">
+                    {top_info['summary']}
+                </p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with res_col2:
+        st.markdown("<h3 style='margin-top: 0; font-size: 1.4rem; color: #0F172A;'>📊 6대 직무 적합도 비교 차트</h3>", unsafe_allow_html=True)
+        chart_rows_html = ""
+        for rank, (j_name, j_pct) in enumerate(sorted_jobs):
+            alpha = max(0.3, 1.0 - (rank * 0.13))
+            bar_color_style = f"background-color: {top_info['color']}; opacity: {alpha:.2f};"
+            chart_rows_html += f"""
+            <div class="pc-chart-row">
+                <div class="pc-chart-label">{j_name}</div>
+                <div class="pc-chart-bar-bg">
+                    <div class="pc-chart-bar-fill" style="width: {j_pct}%; {bar_color_style}"></div>
+                </div>
+                <div class="pc-chart-value">{j_pct:.1f}%</div>
+            </div>
+            """
+
+        st.markdown(f"<div class='pc-chart-container'>{chart_rows_html}</div>", unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # 하단 2분할 가이드: 무식이 교수의 실무 가이드 & 자격증 로드맵
+    st.markdown(
+        f"""
+        <h3 style='font-size: 1.45rem; color: #0F172A; margin-bottom: 16px;'>
+            🎓 무식이 교수의 실무 가이드: '{top_job} 취업 전략'
+        </h3>
+        """, 
+        unsafe_allow_html=True
+    )
+    
+    g_col1, g_col2 = st.columns(2, gap="large")
+
+    with g_col1:
+        st.markdown(
+            f"""
+            <div class='pc-card'>
+                <h4 style="margin-top: 0; color: #0284C7; font-size: 1.2rem;">🛠️ 현업 요구 실무 역량</h4>
+                <ul style="line-height: 2.0; font-size: 1.05rem; color: #334155; margin-bottom: 0;">
+                    {"".join(f"<li><b>{skill}</b></li>" for skill in top_info["core_skills"])}
+                </ul>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with g_col2:
+        st.markdown(
+            f"""
+            <div class='pc-card'>
+                <h4 style="margin-top: 0; color: #059669; font-size: 1.2rem;">📜 추천 자격증 & 취업 로드맵</h4>
+                <ul style="line-height: 2.0; font-size: 1.05rem; color: #334155; margin-bottom: 0;">
+                    {"".join(f"<li><b>{cert}</b></li>" for cert in top_info["recommended_certs"])}
+                </ul>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # 4. 진단 리포트 CSV 다운로드 및 다시하기 버튼
+    st.markdown("---")
+    report_df = pd.DataFrame([
+        {"순위": i+1, "무역직무": j[0], "영문명": TRADE_JOBS[j[0]]["english"], "적합도(%)": j[1]}
+        for i, j in enumerate(sorted_jobs)
+    ])
+    csv_data = report_df.to_csv(index=False, encoding="utf-8-sig").encode("utf-8-sig")
+
+    act_col1, act_col2 = st.columns([3, 1], gap="medium")
+    with act_col1:
+        st.download_button(
+            label="📥 나의 무역 직무 MBTI 진단 리포트 다운로드 (CSV)",
+            data=csv_data,
+            file_name="trade_job_mbti_result.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+    with act_col2:
+        if st.button("🔄 처음부터 다시 검사하기", use_container_width=True):
+            st.session_state.stage = "intro"
+            st.session_state.q_index = 0
+            st.session_state.answers = {q["id"]: 3 for q in QUESTIONS}
+            st.rerun()
