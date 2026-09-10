@@ -24,7 +24,7 @@ FONT_BASE64 = (
     "AAAwAAAAEAAAAKAAAAAgAAAAoAAAACAAAAWgAAAAwAAAAyAAAADA=="
 )
 
-st.set_page_config(page_title="머니머니 계산기", page_icon="💵", layout="centered")
+st.set_page_config(page_title="환율 계산기", page_icon="💵", layout="centered")
 
 st.markdown(f"""
 <style>
@@ -280,7 +280,7 @@ st.markdown("""
     <div class="camera-lens"></div>
 </div>
 <div style="text-align: center; margin-bottom: 4px;">
-    <span style="font-size: 13px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.5px;">💵 머니머니 계산기 💵</span>
+    <span style="font-size: 13px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.5px;">💵 환율 계산기 💵</span>
 </div>
 """, unsafe_allow_html=True)
 
