@@ -2,9 +2,9 @@
 프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test)
 설명: 20개 문항을 기반으로 6대 무역 핵심 직무 적합도를 판별하는 Streamlit 대시보드
 수정사항:
-1. 풍선(st.balloons) 효과 삭제
-2. 결과 확인 시 문이 열리며 결과로 입장하는 3D Door Open 애니메이션 효과 적용
-3. 결과 화면 레이아웃 (추천 직무 -> 차트 -> 실무 가이드 -> 다운로드)
+1. 점수(1~5점) 라디오 버튼을 클릭하면 '다음' 버튼을 누르지 않아도 즉시 다음 문제로 자동 이동 (콜백 처리)
+2. 이전 문제로 돌아가서 다시 답변할 수 있는 '⬅️ 이전 문제' 버튼 유지
+3. 20문항 완료 시 우측 하단 '최종 제출' 버튼 노출 및 3D Door Open 연출
 실행 명령어: streamlit run app.py
 """
 import platform
@@ -135,6 +135,14 @@ if "q_index" not in st.session_state:
 if "answers" not in st.session_state:
     st.session_state.answers = {q["id"]: 3 for q in QUESTIONS}
 
+# 📌 점수 클릭 시 다음 문제로 즉시 넘겨주는 콜백 함수
+def next_question_callback(q_id):
+    chosen_val = st.session_state[f"radio_step_{q_id}"]
+    st.session_state.answers[q_id] = chosen_val
+    # 20번째 문항(마지막)이 아닐 때만 자동으로 다음 문제로 이동
+    if st.session_state.q_index < len(QUESTIONS) - 1:
+        st.session_state.q_index += 1
+
 # --------------------------------------------------
 # 화면 1: 초기 인트로 화면
 # --------------------------------------------------
@@ -158,7 +166,7 @@ if st.session_state.stage == "intro":
                 <b>20문항 초정밀 직무 적합도 진단</b>입니다.
             </p>
             <hr style='margin: 15px 0;'>
-            <p style='font-size: 13px; color: #888; margin-bottom: 0;'>⏱️ 진단 소요 시간: 약 3 ~ 5분 | 척도: 1점(전혀 아님) ~ 5점(매우 그렇다)</p>
+            <p style='font-size: 13px; color: #888; margin-bottom: 0;'>⏱️ 진단 소요 시간: 약 2 ~ 3분 | 척도: 1점(전혀 아님) ~ 5점(매우 그렇다)</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -168,7 +176,7 @@ if st.session_state.stage == "intro":
             st.rerun()
 
 # --------------------------------------------------
-# 화면 2: 1문항씩 게임형 진단 화면
+# 화면 2: 1문항씩 게임형 진단 화면 (점수 누르면 즉시 다음으로 이동)
 # --------------------------------------------------
 elif st.session_state.stage == "test":
     curr_idx = st.session_state.q_index
@@ -177,7 +185,7 @@ elif st.session_state.stage == "test":
 
     progress_val = (curr_idx + 1) / total_q
     st.progress(progress_val)
-    st.markdown(f"<p style='text-align: right; color: #888; font-weight: bold; font-size: 14px;'>퀘스트 진행도: {curr_idx + 1} / {total_q} 문항</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align: right; color: #888; font-weight: bold; font-size: 14px;'>진행도: {curr_idx + 1} / {total_q} 문항</p>", unsafe_allow_html=True)
 
     st.markdown(
         f"""
@@ -199,39 +207,40 @@ elif st.session_state.stage == "test":
     )
 
     saved_val = st.session_state.answers.get(curr_q["id"], 3)
-    choice = st.radio(
+    
+    # 📌 on_change 콜백으로 점수를 클릭하자마자 바로 다음 문항으로 전환
+    st.radio(
         label=f"문항_{curr_q['id']}_선택",
         options=[opt[0] for opt in SCALE_OPTIONS],
         format_func=lambda x: [opt[1] for opt in SCALE_OPTIONS if opt[0] == x][0],
         index=saved_val - 1,
         key=f"radio_step_{curr_q['id']}",
+        on_change=next_question_callback,
+        args=(curr_q["id"],),
         horizontal=True,
         label_visibility="collapsed"
     )
-    st.session_state.answers[curr_q["id"]] = choice
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    btn_col1, btn_col2, btn_col3 = st.columns([1.5, 5, 2])
+    # 하단 이전 버튼(좌측) 및 마지막 20번 문항의 최종 제출 버튼(우측 하단)
+    btn_col1, btn_col2, btn_col3 = st.columns([2, 4, 2])
 
     with btn_col1:
         if curr_idx > 0:
-            if st.button("⬅️ 이전", use_container_width=True):
+            if st.button("⬅️ 이전 문제", use_container_width=True):
                 st.session_state.q_index -= 1
                 st.rerun()
 
     with btn_col3:
-        if curr_idx < total_q - 1:
-            if st.button("다음 ➡️", use_container_width=True, type="primary"):
-                st.session_state.q_index += 1
-                st.rerun()
-        else:
+        # 마지막 20번째 문항에 도달했을 때 제출 버튼 노출
+        if curr_idx == total_q - 1:
             if st.button("🚀 최종 제출", use_container_width=True, type="primary"):
                 st.session_state.stage = "result"
                 st.rerun()
 
 # --------------------------------------------------
-# 화면 3: 최종 진단 결과 화면 (문 열고 입장하는 3D Door Open 애니메이션)
+# 화면 3: 최종 진단 결과 화면
 # --------------------------------------------------
 elif st.session_state.stage == "result":
     job_scores = {job: 0.0 for job in TRADE_JOBS.keys()}
@@ -254,7 +263,7 @@ elif st.session_state.stage == "result":
     top_job, top_pct = sorted_jobs[0]
     top_info = TRADE_JOBS[top_job]
 
-    # 🚪 3D Door Open 애니메이션 오버레이 (풍선 대신 등장)
+    # 🚪 3D Door Open 애니메이션 연출
     door_animation_html = f"""
     <style>
     .door-portal-overlay {{
