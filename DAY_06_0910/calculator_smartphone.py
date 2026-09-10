@@ -1,54 +1,61 @@
 import streamlit as st
 import requests
+import os
 import base64
 
 # ----------------------------------------------------------------------
-# 1. Ok Mallang B 폰트 바이너리 임베딩 및 CSS 주입
+# 1. 기종 무관 폰트 완벽 로드: 로컬 파일 직접 Base64 인코딩
 # ----------------------------------------------------------------------
-# 사용자가 제공한 Ok Mallang B.ttf 바이너리를 직접 내장
-FONT_BASE64 = (
-    "AAEAAAASAQAQAwAwT1MvMpK0qGgAAABgAAAAYGNtYXDs/gT8AAABmAAAAJpjdnQAIXkAAAHwAAA"
-    "AgGdhc3AAAAAQAAAB+AAAABBnbHlmtr+JAAAACAAAAExoZWFkKeX7AAAA2AAAADZoaGVhA2wKMg"
-    "AAAPgAAAAkaG10eMDvD38AAAEcAAAAkGxvY2HO7N5mAAABeAAAAERtYXhwAKsAlAAAAHgAAAAgbm"
-    "FtZQrGwmAAAAIcAAAAXnBvc3Sryq4vAAAC/AAAAGpwcmVwaI6FvwAAAhAAAAAEdGV4dF9tYWxsYW"
-    "5nAAMAAAABAAAAAgAAAAEAACAAAAEAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAA"
-    "EAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAAMAAQ"
-    "AAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAA"
-    "ADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAM"
-    "AAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAA"
-    "ABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEA"
-    "AAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAA"
-    "wAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAA"
-    "AAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQ"
-    "AAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAA"
-    "DAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAA"
-    "AAAwAAAAEAAAAKAAAAAgAAAAoAAAACAAAAWgAAAAwAAAAyAAAADA=="
-)
+# 지정해주신 폰트 절대 경로 및 상대 경로 자동 탐색
+FONT_PATHS = [
+    r"C:\Users\user\AX2\DAY_06_0910\OK_Mallang_Font\ttf\Ok Mallang B.ttf",
+    os.path.join(os.path.dirname(__file__), "Ok Mallang B.ttf") if "__file__" in locals() else "Ok Mallang B.ttf",
+    "Ok Mallang B.ttf"
+]
+
+font_base64 = ""
+for path in FONT_PATHS:
+    if os.path.exists(path):
+        try:
+            with open(path, "rb") as f:
+                font_base64 = base64.b64encode(f.read()).decode("utf-8")
+            break
+        except Exception:
+            continue
+
+# 모바일 기종(iOS/Android)에 상관없이 폰트를 강제 적용하는 CSS 구성
+font_face_css = ""
+if font_base64:
+    font_face_css = f"""
+    @font-face {{
+        font-family: 'OkMallangB';
+        src: url("data:font/ttf;charset=utf-8;base64,{font_base64}") format("truetype");
+        font-weight: normal;
+        font-style: normal;
+        font-display: block; /* 모바일 브라우저 폰트 대체 방지 */
+    }}
+    """
 
 st.set_page_config(page_title="머니머니 계산기", page_icon="💵", layout="centered")
 
 st.markdown(f"""
 <style>
-    @font-face {{
-        font-family: 'OkMallangB';
-        src: url(data:font/truetype;charset=utf-8;base64,{FONT_BASE64}) format('truetype');
-        font-weight: normal;
-        font-style: normal;
-    }}
+    {font_face_css}
 
-    /* 전역 글꼴 강제 적용 */
-    *, html, body, button, input, select, span, p, div {{
+    /* 전역 글꼴 강제 적용 (아이폰/안드로이드 모든 태그 적용) */
+    html, body, [class*="css"], .stApp, button, input, select, textarea, span, p, div {{
         font-family: 'OkMallangB', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        -webkit-font-smoothing: antialiased;
     }}
 
-    /* 1. 바깥 배경: 순백색 */
+    /* 1. 바깥 웹 배경: 순백색 */
     .stApp, html, body {{
         background-color: #FFFFFF !important;
     }}
 
     header, footer {{ visibility: hidden !important; height: 0 !important; }}
 
-    /* 2. 한 화면(100vh) 맞춤 스마트폰 테두리 */
+    /* 2. 한 화면 맞춤 스마트폰 외곽 테두리 (모바일 화면에 맞춰 유동 크기) */
     .block-container {{
         width: 92vw !important;
         max-width: 360px !important;
@@ -61,7 +68,7 @@ st.markdown(f"""
         box-sizing: border-box !important;
     }}
 
-    /* 3. 상단 다이내믹 아일랜드 */
+    /* 3. 상단 다이내믹 아일랜드 노치 */
     .dynamic-island {{
         width: 75px;
         height: 18px;
@@ -82,7 +89,7 @@ st.markdown(f"""
         border: 1px solid #1b263b;
     }}
 
-    /* 4. 모바일 3열 가로 정렬 고정 */
+    /* 4. 모바일에서도 1열로 떨어지지 않고 반드시 3열 유지 */
     div[data-testid="stHorizontalBlock"] {{
         display: flex !important;
         flex-direction: row !important;
@@ -123,7 +130,7 @@ st.markdown(f"""
         line-height: 1.2 !important;
     }}
 
-    /* 6. 동그라미 버튼 규격 (한 화면에 맞춰 자동 축소) */
+    /* 6. 동그라미 버튼 규격 */
     div[data-testid="stButton"] {{
         width: 100% !important;
         margin: 0 !important;
@@ -153,7 +160,7 @@ st.markdown(f"""
         opacity: 0.7 !important;
     }}
 
-    /* 숫자 버튼: 주황색 + Ok Mallang B 폰트 적용 */
+    /* 숫자 버튼: 주황색 배경 + Ok Mallang B 폰트 강제 상속 */
     .btn-num div[data-testid="stButton"] > button {{
         background-color: #FF9F0A !important;
     }}
@@ -171,7 +178,7 @@ st.markdown(f"""
         text-align: center !important;
     }}
 
-    /* 기능 버튼 (C, ⌫) */
+    /* 기능 버튼 (C, ⌫): 회색 버튼 */
     .btn-fn div[data-testid="stButton"] > button {{
         background-color: #A5A5A5 !important;
     }}
@@ -308,7 +315,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------------------------
-# 4. 한 화면에 쏙 들어오는 3열 키패드 (Ok Mallang B 폰트 적용)
+# 4. 3열 키패드 (기종 무관 Ok Mallang B 적용)
 # ----------------------------------------------------------------------
 # 1행: 1, 2, 3
 r1 = st.columns(3)
