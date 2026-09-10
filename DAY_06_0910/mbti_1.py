@@ -1,6 +1,6 @@
 """
-프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test) - 글자 깨짐 완전 해결 에디션
-설명: Matplotlib 폰트 의존성을 제거하고 반응형 HTML/CSS 네이티브 차트로 전환하여 한글 깨짐을 100% 방지한 코드
+프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test) - 모바일 최적화 줄바꿈 에디션
+설명: 모바일 화면에서 문장 줄바꿈 및 타이틀 가독성을 최적화하고 한글 깨짐을 원천 차단한 대시보드
 실행 명령어: streamlit run app.py
 """
 import platform
@@ -261,7 +261,7 @@ if "answers" not in st.session_state:
     st.session_state.answers = {q["id"]: 3 for q in QUESTIONS}
 
 # --------------------------------------------------
-# 화면 1: 초기 인트로 화면
+# 화면 1: 초기 인트로 화면 (수정 1 반영: 줄바꿈 및 볼드체 지정)
 # --------------------------------------------------
 if st.session_state.stage == "intro":
     st.markdown("<div class='main-title'>🌐 무역 직무 MBTI 센터 🌐</div>", unsafe_allow_html=True)
@@ -293,14 +293,16 @@ if st.session_state.stage == "intro":
         unsafe_allow_html=True
     )
     
+    # 📌 수정 1: 모바일에서도 정확히 3줄로 떨어지도록 white-space: nowrap 처리 및 볼드체 적용
     st.markdown("""
     <div class='responsive-card' style='border: 1px solid #e0e0e0;'>
         <p style='font-size: clamp(1rem, 3.5vw, 1.15rem); font-weight: bold; margin-bottom: 6px;'>&ldquo;무역학과 나와서 뭐 하지?&rdquo;</p>
         <p style='font-size: clamp(1rem, 3.5vw, 1.15rem); font-weight: bold; margin-bottom: 12px;'>&ldquo;비전공자인데 어떤 무역 포지션이 맞을까?&rdquo;</p>
-        <p style='line-height: 1.65; color: #555; font-size: clamp(0.9rem, 3vw, 1.02rem); margin-bottom: 0;'>
-            10년 차 UI 전문가 <b>코식이</b>와 20년 차 무역 전문가 <b>무식이</b>가 함께 설계한<br>
-            <b>20문항 초정밀 직무 적합도 진단</b>입니다.
-        </p>
+        <div style='line-height: 1.7; color: #475569; font-size: clamp(0.85rem, 2.9vw, 1.0rem); margin-bottom: 0;'>
+            <p style='margin: 0; white-space: nowrap;'>10년 차 UI 전문가 <b>코식이</b>와</p>
+            <p style='margin: 0; white-space: nowrap;'>20년 차 무역 전문가 <b>무식이</b>가 함께 설계한</p>
+            <p style='margin: 0; white-space: nowrap;'>20문항 초정밀 직무 적합도 진단입니다.</p>
+        </div>
         <hr style='margin: 14px 0;'>
         <p style='font-size: clamp(0.8rem, 2.5vw, 0.9rem); color: #888; margin-bottom: 0;'>⏱️ 진단 소요 시간: 약 2 ~ 3분 | 척도: 1점 ~ 5점</p>
     </div>
@@ -391,7 +393,7 @@ elif st.session_state.stage == "test":
             st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 화면 3: 최종 진단 결과 화면 (한글 깨짐 원천 방지 네이티브 렌더링)
+# 화면 3: 최종 진단 결과 화면 (수정 2 반영: 가이드 제목 2줄 처리)
 # --------------------------------------------------
 elif st.session_state.stage == "result":
     job_scores = {job: 0.0 for job in TRADE_JOBS.keys()}
@@ -414,7 +416,6 @@ elif st.session_state.stage == "result":
     top_job, top_pct = sorted_jobs[0]
     top_info = TRADE_JOBS[top_job]
 
-    # 파도 트랜지션 애니메이션
     ocean_wave_animation_html = """
     <style>
     .wave-transition-overlay {
@@ -501,7 +502,6 @@ elif st.session_state.stage == "result":
     n_jobs = len(sorted_jobs)
     chart_rows_html = ""
     for rank, (j_name, j_pct) in enumerate(sorted_jobs):
-        # 1위는 불투명도 1.0, 순위가 내려갈수록 점점 연해지는 계산
         alpha = max(0.28, 1.0 - (rank * 0.14))
         bar_color_style = f"background-color: {top_info['color']}; opacity: {alpha:.2f};"
         
@@ -526,8 +526,16 @@ elif st.session_state.stage == "result":
 
     st.markdown("---")
 
-    # 3. '무식이 교수의 실무 가이드'
-    st.markdown(f"<h3 style='font-size: clamp(1.2rem, 3.8vw, 1.6rem); margin-bottom: 12px;'>🎓 무식이 교수의 실무 가이드: '{top_job}' 취업 전략</h3>", unsafe_allow_html=True)
+    # 3. '무식이 교수의 실무 가이드' (📌 수정 2: 줄바꿈 적용)
+    st.markdown(
+        f"""
+        <h3 style='font-size: clamp(1.2rem, 3.8vw, 1.6rem); line-height: 1.45; margin-bottom: 16px;'>
+            🎓 무식이 교수의 실무 가이드:<br>'{top_job} 취업 전략'
+        </h3>
+        """, 
+        unsafe_allow_html=True
+    )
+    
     g_col1, g_col2 = st.columns(2)
 
     with g_col1:
