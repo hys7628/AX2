@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2025-2026 정유업계 동향 및 전략 대시보드</title>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg-main: #0b1329;
+      --card-bg: #141f3d;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-blue: #38bdf8;
+      --accent-orange: #f97316;
+      --accent-green: #10b981;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Malgun Gothic", "맑은 고딕", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* 헤더 */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0 28px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-title h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-title p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .badge-status {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-blue);
+      border: 1px solid var(--accent-blue);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* KPI 카드 그리드 */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .kpi-info h3 {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .kpi-info .kpi-val {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-info .kpi-sub {
+      font-size: 0.78rem;
+      margin-top: 4px;
+    }
+
+    .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    /* 메인 콘텐츠 2열 그리드 */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .panel-header h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 4대 기업 탭 */
+    .company-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--accent-blue);
+      color: #0b1329;
+      border-color: var(--accent-blue);
+    }
+
+    .company-detail {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 16px;
+      border-radius: 10px;
+      border-left: 4px solid var(--accent-blue);
+    }
+
+    .company-detail h3 {
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .company-detail ul {
+      margin-left: 20px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .company-detail li {
+      margin-bottom: 4px;
+    }
+
+    /* 신사업 카드 그리드 */
+    .future-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .future-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--card-border);
+      padding: 16px;
+      border-radius: 12px;
+      transition: transform 0.2s ease;
+    }
+
+    .future-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent-blue);
+    }
+
+    .future-card i {
+      font-size: 1.6rem;
+      color: var(--accent-blue);
+      margin-bottom: 8px;
+    }
+
+    .future-card h4 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+
+    .future-card p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px 0 10px;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      border-top: 1px solid var(--card-border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 헤더 영역 -->
+    <header>
+      <div class="header-title">
+        <h1><i class="fa-solid fa-oil-well" style="color: var(--accent-orange);"></i> 대한민국 정유업계 현황 및 전략 대시보드</h1>
+        <p>복합 정제마진 등락, 글로벌 규제 대응 및 탈탄소 신성장 동력(SAF·열관리) 현황 요약</p>
+      </div>
+      <div class="badge-status">
+        <i class="fa-solid fa-circle-notch fa-spin"></i> 글로벌 에너지 전환기
+      </div>
+    </header>
+
+    <!-- 1. 핵심 지표 (KPI) -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <h3>싱가포르 복합 정제마진</h3>
+          <div class="kpi-val">$4.8 / bbl</div>
+          <div class="kpi-sub" style="color: var(--accent-orange);"><i class="fa-solid fa-arrow-trend-down"></i> 손익분기($4~5) 부근 등락</div>
+        </div>
+        <div class="kpi-icon" style="background: rgba(249, 115, 22, 0.15); color: var(--accent-orange);">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <h3>SAF(지속가능항공유) 의무화</h3>
+          <div class="kpi-val">2027년 (1%)</div>
+          <div class="kpi-sub" style="color: var(--accent-green);"><i class="fa-solid fa-plane-departure"></i> 2030년 3~5% 확대 목표</div>
+        </div>
+        <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green);">
+          <i class="fa-solid fa-seedling"></i>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <h3>수출 비중 (총 생산 대비)</h3>
+          <div class="kpi-val">55% 이상</div>
+          <div class="kpi-sub" style="color: var(--accent-blue);"><i class="fa-solid fa-ship"></i> 석유제품 국가 주요 수출 5위권</div>
+        </div>
+        <div class="kpi-icon" style="background: rgba(56, 189, 248, 0.15); color: var(--accent-blue);">
+          <i class="fa-solid fa-globe"></i>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <h3>신사업 포트폴리오 비중 목표</h3>
+          <div class="kpi-val">30%+ (2030)</div>
+          <div class="kpi-sub" style="color: #a855f7;"><i class="fa-solid fa-bolt"></i> 화학·배터리·액침냉각 확대</div>
+        </div>
+        <div class="kpi-icon" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">
+          <i class="fa-solid fa-battery-three-quarters"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 차트 & 주요 이슈 패널 -->
+    <div class="main-grid">
+      <!-- 정제마진 추이 차트 -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-wave-square" style="color: var(--accent-blue);"></i> 복합 정제마진 분기별 추이 ($/배럴)</h2>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">BEP(손익분기): $4.5</span>
+        </div>
+        <div style="height: 280px; position: relative;">
+          <canvas id="marginChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 정유 4사별 핵심 동향 (탭 인터랙션) -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-building" style="color: var(--accent-orange);"></i> 국내 정유 4사 주요 전략</h2>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">클릭하여 기업별 확인</span>
+        </div>
+        <div class="company-tabs">
+          <button class="tab-btn active" onclick="showCompany('sk', event)">SK이노베이션</button>
+          <button class="tab-btn" onclick="showCompany('gs', event)">GS칼텍스</button>
+          <button class="tab-btn" onclick="showCompany('soil', event)">에쓰오일(S-OIL)</button>
+          <button class="tab-btn" onclick="showCompany('hd', event)">HD현대오일뱅크</button>
+        </div>
+
+        <div id="company-box" class="company-detail">
+          <!-- JS로 동적 교체 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 미래 성장 전략: 친환경 & 고부가 포트폴리오 -->
+    <div class="panel" style="margin-bottom: 24px;">
+      <div class="panel-header">
+        <h2><i class="fa-solid fa-arrows-spin" style="color: var(--accent-green);"></i> 탈정유 & 포트폴리오 다각화 4대 핵심 축</h2>
+      </div>
+      <div class="future-grid">
+        <div class="future-card">
+          <i class="fa-solid fa-plane"></i>
+          <h4>SAF (지속가능항공유)</h4>
+          <p>전용 바이오 원료 라인 증설 및 국제선 의무화 대응. 폐식용유·동물성 유지를 활용한 코프로세싱(Co-processing) 공정 확대.</p>
+        </div>
+        <div class="future-card">
+          <i class="fa-solid fa-snowflake"></i>
+          <h4>데이터센터 액침냉각유</h4>
+          <p>AI 연산 급증으로 고발열 서버 냉각 수요 폭발. 윤활기유(Group III) 기반 비전도성 절연 플루이드 신시장 공략.</p>
+        </div>
+        <div class="future-card">
+          <i class="fa-solid fa-flask"></i>
+          <h4>석유화학 고도화 (COTC/샤힌)</h4>
+          <p>원유를 단순 연료유가 아닌 고부가 플라스틱 원료(에틸렌, 프로필렌)로 직접 전환하여 마진 극대화.</p>
+        </div>
+        <div class="future-card">
+          <i class="fa-solid fa-recycle"></i>
+          <h4>폐플라스틱 열분해유 & 수소</h4>
+          <p>폐비닐·폐플라스틱을 화학적으로 재활용해 원유 대체 투입. 블루/청정수소 및 CCUS 연계 사업 추진.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 푸터 -->
+    <footer>
+      <p>© 2025-2026 대한민국 정유산업 현황 브리핑 리포트 | 한국석유공사 페트로넷 및 업계 공시 기준 재구성</p>
+    </footer>
+  </div>
+
+  <script>
+    // 1. 복합 정제마진 차트 (Chart.js)
+    const ctx = document.getElementById('marginChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['23.1Q', '23.3Q', '24.1Q', '24.3Q', '25.1Q', '25.3Q', '26.1Q(E)'],
+        datasets: [
+          {
+            label: '싱가포르 복합 정제마진 ($/bbl)',
+            data: [8.2, 7.5, 7.3, 3.6, 4.2, 5.1, 4.8],
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.1)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2,
+            pointBackgroundColor: '#38bdf8',
+            pointRadius: 4
+          },
+          {
+            label: '손익분기점(BEP 기준)',
+            data: [4.5, 4.5, 4.5, 4.5, 4.5, 4.5, 4.5],
+            borderColor: '#ef4444',
+            borderDash: [5, 5],
+            borderWidth: 1.5,
+            fill: false,
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: { color: '#94a3b8' }
+          }
+        },
+        scales: {
+          y: {
+            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+            ticks: { color: '#94a3b8' }
+          },
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+            ticks: { color: '#94a3b8' }
+          }
+        }
+      }
+    });
+
+    // 2. 기업별 데이터
+    const companyData = {
+      sk: {
+        title: "SK이노베이션 (SK에너지)",
+        color: "#38bdf8",
+        points: [
+          "<strong>SK E&S와의 합병 완료:</strong> 정유-LNG-신재생에너지를 잇는 토탈 에너지 기업으로 재편",
+          "<strong>울산CLX SAF 전용 생산:</strong> 바이오 원료 코프로세싱을 통한 친환경 항공유 수출 본격화",
+          "<strong>액침냉각 브랜드 'ZIC e-FLO':</strong> 윤활유 기술력을 기반으로 한 글로벌 데이터센터 냉각 솔루션 진출"
+        ]
+      },
+      gs: {
+        title: "GS칼텍스",
+        color: "#10b981",
+        points: [
+          "<strong>수익성 방어 선두:</strong> 고도화 설비 가동 최적화로 정유 4사 중 견조한 영업이익 실적 기록",
+          "<strong>바이오 연료 풀 라인업:</strong> 포스코인터내셔널과 인니 팜유 정제공장 합작 등 바이오 원료 밸류체인 확보",
+          "<strong>화이트 바이오/플라스틱 리사이클링:</strong> 2,3-부탄다이올 양산 및 폐플라스틱 열분해유 상용화 가속"
+        ]
+      },
+      soil: {
+        title: "에쓰오일 (S-OIL)",
+        color: "#f59e0b",
+        points: [
+          "<strong>샤힌 프로젝트 (Shaheen Project):</strong> 9조 2,580억 원 규모의 사상 최대 석유화학 콤플렉스 구축 (TC2C 기술)",
+          "<strong>화학 비중 25% 목표:</strong> 단순 정유사에서 고부가가치 화학사로의 성공적 체질 전환 진행 중",
+          "<strong>지속가능성 인증(ISCC):</strong> 국내 최초 폐식용유·폐기물 기반 바이오 원료 공정 투입 및 SAF 국제인증 획득"
+        ]
+      },
+      hd: {
+        title: "HD현대오일뱅크",
+        color: "#a855f7",
+        points: [
+          "<strong>바이오디젤 상업화 성공:</strong> 연산 13만 톤 규모 차세대 바이오디젤 전용 공장 가동",
+          "<strong>스펙트라(X-Cool) 액침냉각:</strong> 자체 윤활기유를 활용한 고성능 서버 냉각 플루이드 시장 론칭",
+          "<strong>화이트 바이오 로드맵:</strong> 식물성 부산물 기반 바이오 항공유·납사 단계적 확장"
+        ]
+      }
+    };
+
+    function showCompany(key, evt) {
+      // 탭 활성화 토글
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      if (evt && evt.target) {
+        evt.target.classList.add('active');
+      }
+
+      // 내용 렌더링
+      const data = companyData[key];
+      const box = document.getElementById('company-box');
+      box.style.borderLeftColor = data.color;
+
+      let listHtml = data.points.map(p => `<li>${p}</li>`).join('');
+      box.innerHTML = `
+        <h3 style="color: ${data.color};">${data.title}</h3>
+        <ul>${listHtml}</ul>
+      `;
+    }
+
+    // 초기 표시 (SK이노베이션)
+    window.onload = () => {
+      const firstData = companyData['sk'];
+      const box = document.getElementById('company-box');
+      box.innerHTML = `
+        <h3 style="color: ${firstData.color};">${firstData.title}</h3>
+        <ul>${firstData.points.map(p => `<li>${p}</li>`).join('')}</ul>
+      `;
+    };
+  </script>
+</body>
+</html>
