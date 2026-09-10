@@ -1,6 +1,6 @@
 """
-프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test) - 항해하는 컨테이너선 에디션
-설명: 문제 진행률에 따라 푸른 물결 바 위를 컨테이너선(🚢)이 실시간으로 항해하는 귀여운 인터랙티브 대시보드
+프로젝트: 무역 직무 적합도 MBTI 대시보드 (Trade Job Fit Test) - 글자 깨짐 완전 해결 에디션
+설명: Matplotlib 폰트 의존성을 제거하고 반응형 HTML/CSS 네이티브 차트로 전환하여 한글 깨짐을 100% 방지한 코드
 실행 명령어: streamlit run app.py
 """
 import platform
@@ -10,19 +10,6 @@ import base64
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-
-# --------------------------------------------------
-# 0. 한글 폰트 설정 (OS 환경별 대응)
-# --------------------------------------------------
-if platform.system() == "Windows":
-    plt.rcParams["font.family"] = "Malgun Gothic"
-elif platform.system() == "Darwin":
-    plt.rcParams["font.family"] = "AppleGothic"
-else:
-    plt.rcParams["font.family"] = "sans-serif"
-plt.rcParams["axes.unicode_minus"] = False
 
 # --------------------------------------------------
 # 1. Streamlit 페이지 설정 및 커스텀 CSS
@@ -42,6 +29,7 @@ st.markdown("""
     padding-left: clamp(1rem, 3.5vw, 2.5rem) !important;
     padding-right: clamp(1rem, 3.5vw, 2.5rem) !important;
     padding-top: clamp(1.2rem, 3vw, 2.2rem) !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", sans-serif !important;
 }
 
 /* 유동적 헤딩 글자 크기 */
@@ -107,7 +95,6 @@ div[data-testid="stButton"] > button {
     margin-bottom: 10px !important;
 }
 
-/* 선택지 상자 마우스 오버(Hover) 효과 */
 div[data-testid="stButton"] > button:hover {
     border-color: #38BDF8 !important;
     color: #0284C7 !important;
@@ -122,6 +109,55 @@ div[data-testid="stButton"] > button:hover {
     border: 1px solid #CBD5E1 !important;
     color: #64748B !important;
     min-height: 42px !important;
+}
+
+/* 한글 깨짐 방지 네이티브 바 차트 스타일 */
+.native-chart-container {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin: 15px 0 25px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+.chart-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px;
+}
+.chart-row:last-child {
+    margin-bottom: 0;
+}
+.chart-label {
+    width: 130px;
+    min-width: 130px;
+    font-size: clamp(0.85rem, 2.6vw, 0.95rem);
+    font-weight: 700;
+    color: #334155;
+    text-align: right;
+    padding-right: 14px;
+    word-break: keep-all;
+}
+.chart-bar-bg {
+    flex-grow: 1;
+    background-color: #F1F5F9;
+    border-radius: 8px;
+    height: 24px;
+    overflow: hidden;
+    position: relative;
+}
+.chart-bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.8s ease-out;
+}
+.chart-value {
+    width: 60px;
+    min-width: 60px;
+    padding-left: 12px;
+    font-size: clamp(0.85rem, 2.6vw, 0.95rem);
+    font-weight: 800;
+    color: #1E293B;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -276,20 +312,18 @@ if st.session_state.stage == "intro":
         st.rerun()
 
 # --------------------------------------------------
-# 화면 2: 질문 상자 및 컨테이너선 진행 바 (🚢 항해 애니메이션)
+# 화면 2: 질문 상자 및 컨테이너선 진행 바 (🚢 항해 트랙)
 # --------------------------------------------------
 elif st.session_state.stage == "test":
     curr_idx = st.session_state.q_index
     total_q = len(QUESTIONS)
     curr_q = QUESTIONS[curr_idx]
 
-    # 📌 [수정 반영] 파란 줄 위를 항해하는 귀여운 컨테이너선(🚢) 프로그레스 바
     progress_pct = round(((curr_idx + 1) / total_q) * 100, 1)
 
     st.markdown(
         f"""
         <div style="width: 100%; margin: 12px 0 25px 0;">
-            <!-- 컨테이너선 배 위치 -->
             <div style="position: relative; width: 100%; height: 28px;">
                 <span style="
                     position: absolute;
@@ -300,7 +334,6 @@ elif st.session_state.stage == "test":
                     user-select: none;
                 ">🚢</span>
             </div>
-            <!-- 파란색 바다 레일 -->
             <div style="
                 width: 100%; 
                 height: 8px; 
@@ -316,7 +349,6 @@ elif st.session_state.stage == "test":
                     transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
                 "></div>
             </div>
-            <!-- 순항 안내 텍스트 -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
                 <span style="font-size: 0.8rem; color: #0284C7; font-weight: 700;">🌊 {progress_pct}% 순항 중</span>
                 <span style="font-size: 0.85rem; color: #64748B; font-weight: 700;">{curr_idx + 1} / {total_q}</span>
@@ -326,7 +358,6 @@ elif st.session_state.stage == "test":
         unsafe_allow_html=True
     )
 
-    # 질문 텍스트 상자
     st.markdown(
         f"""
         <div class="quiz-question-container">
@@ -337,7 +368,6 @@ elif st.session_state.stage == "test":
         unsafe_allow_html=True
     )
 
-    # 중앙 정렬 5개 선택지 버튼 상자
     pad_left, center_col, pad_right = st.columns([1, 4, 1])
 
     with center_col:
@@ -353,7 +383,6 @@ elif st.session_state.stage == "test":
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 이전 질문 이동 버튼
         if curr_idx > 0:
             st.markdown("<div class='nav-btn'>", unsafe_allow_html=True)
             if st.button("⬅️ 이전 질문으로 돌아가기", use_container_width=True):
@@ -362,7 +391,7 @@ elif st.session_state.stage == "test":
             st.markdown("</div>", unsafe_allow_html=True)
 
 # --------------------------------------------------
-# 화면 3: 최종 진단 결과 화면
+# 화면 3: 최종 진단 결과 화면 (한글 깨짐 원천 방지 네이티브 렌더링)
 # --------------------------------------------------
 elif st.session_state.stage == "result":
     job_scores = {job: 0.0 for job in TRADE_JOBS.keys()}
@@ -385,9 +414,10 @@ elif st.session_state.stage == "result":
     top_job, top_pct = sorted_jobs[0]
     top_info = TRADE_JOBS[top_job]
 
-    door_animation_html = f"""
+    # 파도 트랜지션 애니메이션
+    ocean_wave_animation_html = """
     <style>
-    .door-portal-overlay {{
+    .wave-transition-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -395,52 +425,52 @@ elif st.session_state.stage == "result":
         height: 100vh;
         z-index: 999999;
         pointer-events: none;
-        perspective: 1200px;
-        display: flex;
         overflow: hidden;
-    }}
-    .door-panel {{
+        animation: fadeOutContainer 2.2s forwards ease-in-out;
+    }
+    .wave-layer {
         position: absolute;
-        top: 0;
-        width: 50vw;
-        height: 100vh;
-        background: linear-gradient(135deg, #1A252F 0%, #2C3E50 60%, #111827 100%);
-        box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
-        display: flex;
-        align-items: center;
-        transition: transform 1.6s cubic-bezier(0.77, 0, 0.175, 1);
-    }}
-    .door-left {{
-        left: 0;
-        transform-origin: left center;
-        justify-content: flex-end;
-        border-right: 2px solid rgba(255, 215, 0, 0.4);
-        animation: openLeftDoor 1.8s forwards ease-in-out;
-    }}
-    .door-right {{
-        right: 0;
-        transform-origin: right center;
-        justify-content: flex-start;
-        border-left: 2px solid rgba(255, 215, 0, 0.4);
-        animation: openRightDoor 1.8s forwards ease-in-out;
-    }}
-    @keyframes openLeftDoor {{
-        0% {{ transform: rotateY(0deg); opacity: 1; }}
-        65% {{ transform: rotateY(-95deg); opacity: 0.9; }}
-        100% {{ transform: rotateY(-120deg); opacity: 0; visibility: hidden; }}
-    }}
-    @keyframes openRightDoor {{
-        0% {{ transform: rotateY(0deg); opacity: 1; }}
-        65% {{ transform: rotateY(95deg); opacity: 0.9; }}
-        100% {{ transform: rotateY(120deg); opacity: 0; visibility: hidden; }}
-    }}
+        left: -50%;
+        width: 200%;
+        height: 140vh;
+        border-radius: 43% 47% 44% 46%;
+        bottom: -150vh;
+    }
+    .wave1 {
+        background: linear-gradient(180deg, rgba(56, 189, 248, 0.85) 0%, rgba(2, 132, 199, 0.95) 100%);
+        animation: waveRoll 2.1s forwards cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1;
+    }
+    .wave2 {
+        background: linear-gradient(180deg, rgba(14, 165, 233, 0.75) 0%, rgba(3, 105, 161, 0.9) 100%);
+        animation: waveRoll 2.1s forwards cubic-bezier(0.4, 0, 0.2, 1) 0.12s;
+        border-radius: 46% 44% 47% 43%;
+        z-index: 2;
+    }
+    .wave3 {
+        background: linear-gradient(180deg, rgba(224, 242, 254, 0.9) 0%, rgba(56, 189, 248, 0.8) 100%);
+        animation: waveRoll 2.1s forwards cubic-bezier(0.4, 0, 0.2, 1) 0.22s;
+        border-radius: 42% 48% 43% 47%;
+        z-index: 3;
+    }
+    @keyframes waveRoll {
+        0% { bottom: -140vh; transform: rotate(0deg); }
+        48% { bottom: -15vh; transform: rotate(180deg); }
+        100% { bottom: 120vh; transform: rotate(360deg); }
+    }
+    @keyframes fadeOutContainer {
+        0% { opacity: 1; }
+        85% { opacity: 0.95; }
+        100% { opacity: 0; visibility: hidden; }
+    }
     </style>
-    <div class="door-portal-overlay">
-        <div class="door-panel door-left"></div>
-        <div class="door-panel door-right"></div>
+    <div class="wave-transition-overlay">
+        <div class="wave-layer wave1"></div>
+        <div class="wave-layer wave2"></div>
+        <div class="wave-layer wave3"></div>
     </div>
     """
-    st.markdown(door_animation_html, unsafe_allow_html=True)
+    st.markdown(ocean_wave_animation_html, unsafe_allow_html=True)
 
     # 1. '당신에게 가장 추천하는 무역 직무'
     st.markdown(
@@ -465,53 +495,34 @@ elif st.session_state.stage == "result":
 
     st.markdown("---")
 
-    # 2. '6대 직무 적합도 비교 차트'
+    # 2. '6대 직무 적합도 비교 차트' (글자 깨짐 없는 네이티브 HTML 바 차트)
     st.markdown("<h3 style='font-size: clamp(1.2rem, 3.8vw, 1.6rem); margin-bottom: 12px;'>📊 6대 직무 적합도 비교 차트</h3>", unsafe_allow_html=True)
     
-    plot_jobs = sorted_jobs[::-1]
-    job_names = [j[0] for j in plot_jobs]
-    job_values = [j[1] for j in plot_jobs]
-    n_jobs = len(plot_jobs)
+    n_jobs = len(sorted_jobs)
+    chart_rows_html = ""
+    for rank, (j_name, j_pct) in enumerate(sorted_jobs):
+        # 1위는 불투명도 1.0, 순위가 내려갈수록 점점 연해지는 계산
+        alpha = max(0.28, 1.0 - (rank * 0.14))
+        bar_color_style = f"background-color: {top_info['color']}; opacity: {alpha:.2f};"
+        
+        chart_rows_html += f"""
+        <div class="chart-row">
+            <div class="chart-label">{j_name}</div>
+            <div class="chart-bar-bg">
+                <div class="chart-bar-fill" style="width: {j_pct}%; {bar_color_style}"></div>
+            </div>
+            <div class="chart-value">{j_pct:.1f}%</div>
+        </div>
+        """
 
-    alpha_levels = np.linspace(0.25, 1.0, n_jobs)
-    base_color = top_info['color']
-    rgb_base = mcolors.to_rgb(base_color)
-    bar_colors = [(rgb_base[0], rgb_base[1], rgb_base[2], a) for a in alpha_levels]
-
-    fig, ax = plt.subplots(figsize=(8, 4.2))
-    bars = ax.barh(job_names, job_values, color=bar_colors, edgecolor=base_color, height=0.58)
-
-    ax.set_xlim(0, 118)
-    ax.set_xlabel("직무 적합도 (%)", fontsize=10, fontweight="bold")
-
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_color("#ccc")
-    ax.spines['bottom'].set_color("#ccc")
-    ax.xaxis.grid(True, linestyle="--", alpha=0.5)
-    ax.set_axisbelow(True)
-
-    for bar in bars:
-        width = bar.get_width()
-        ax.annotate(
-            f" {width:.1f}%",
-            xy=(width, bar.get_y() + bar.get_height() / 2),
-            xytext=(3, 0),
-            textcoords="offset points",
-            va="center",
-            ha="left",
-            fontsize=10,
-            fontweight="bold",
-            color="#222"
-        )
-
-    ax.tick_params(axis='y', labelsize=10.5)
-    for tick in ax.get_yticklabels():
-        tick.set_fontweight("bold")
-
-    plt.tight_layout()
-    st.pyplot(fig, use_container_width=True)
-    plt.close()
+    st.markdown(
+        f"""
+        <div class="native-chart-container">
+            {chart_rows_html}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     st.markdown("---")
 
