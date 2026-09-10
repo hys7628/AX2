@@ -5,6 +5,7 @@
 2. 코식이 / 무식이 볼드체 및 모바일 3줄 줄바꿈 유지
 3. 적합 매칭도 -> 6대 직무 차트 -> 실무 가이드 순 세로 정렬
 4. 다운로드 & 처음으로 돌아가기 버튼 중앙 정렬 및 1:1 동일 크기
+5. 💾 진단 리포트 저장 및 안내 헤더 왼쪽 정렬
 실행 명령어: streamlit run app.py
 """
 import platform
@@ -304,7 +305,6 @@ if st.session_state.stage == "intro":
         unsafe_allow_html=True
     )
     
-    # 📌 요청하신 텍스트 전체 가운데 정렬(text-align: center) 적용 카드
     st.markdown("""
     <div class='responsive-card' style='border: 1px solid #e0e0e0; text-align: center;'>
         <p style='font-size: clamp(1rem, 3.5vw, 1.15rem); font-weight: bold; margin-bottom: 6px; text-align: center;'>
@@ -565,9 +565,10 @@ elif st.session_state.stage == "result":
         for cert in top_info["recommended_certs"]:
             st.markdown(f"- 🏅 **{cert}**")
 
-    # 4. 진단 리포트 CSV 다운로드 및 다시하기 버튼 (중앙 정렬 및 동일 크기)
+    # 4. 진단 리포트 CSV 다운로드 및 다시하기 버튼
     st.markdown("---")
-    st.markdown("<h3 style='font-size: clamp(1.2rem, 3.8vw, 1.6rem); margin-bottom: 16px; text-align: center;'>💾 진단 리포트 저장 및 안내</h3>", unsafe_allow_html=True)
+    # 📌 왼쪽 정렬 적용 (text-align: left)
+    st.markdown("<h3 style='font-size: clamp(1.2rem, 3.8vw, 1.6rem); margin-bottom: 16px; text-align: left;'>💾 진단 리포트 저장 및 안내</h3>", unsafe_allow_html=True)
 
     report_df = pd.DataFrame([
         {"순위": i+1, "무역직무": j[0], "영문명": TRADE_JOBS[j[0]]["english"], "적합도(%)": j[1]}
