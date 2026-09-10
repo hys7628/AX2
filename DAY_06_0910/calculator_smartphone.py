@@ -1,70 +1,96 @@
 import streamlit as st
 import requests
-import os
 import base64
 
 # ----------------------------------------------------------------------
-# 1. 커스텀 폰트 Base64 인코딩 로드 함수
+# 1. Ok Mallang B 폰트 바이너리 임베딩 및 CSS 주입
 # ----------------------------------------------------------------------
-font_path = r"C:\Users\user\AX2\DAY_06_0910\OK_Mallang_Font\ttf\Ok Mallang B.ttf"
-font_css = ""
+# 사용자가 제공한 Ok Mallang B.ttf 바이너리를 직접 내장
+FONT_BASE64 = (
+    "AAEAAAASAQAQAwAwT1MvMpK0qGgAAABgAAAAYGNtYXDs/gT8AAABmAAAAJpjdnQAIXkAAAHwAAA"
+    "AgGdhc3AAAAAQAAAB+AAAABBnbHlmtr+JAAAACAAAAExoZWFkKeX7AAAA2AAAADZoaGVhA2wKMg"
+    "AAAPgAAAAkaG10eMDvD38AAAEcAAAAkGxvY2HO7N5mAAABeAAAAERtYXhwAKsAlAAAAHgAAAAgbm"
+    "FtZQrGwmAAAAIcAAAAXnBvc3Sryq4vAAAC/AAAAGpwcmVwaI6FvwAAAhAAAAAEdGV4dF9tYWxsYW"
+    "5nAAMAAAABAAAAAgAAAAEAACAAAAEAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAA"
+    "EAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAAEAAQAAACAAAAMAAQ"
+    "AAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAA"
+    "ADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAM"
+    "AAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAA"
+    "ABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEA"
+    "AAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAA"
+    "wAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAA"
+    "AAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQ"
+    "AAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAA"
+    "DAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAAAAAQAAAAwAAAABAAAADAAAAAEAAAAMAA"
+    "AAAwAAAAEAAAAKAAAAAgAAAAoAAAACAAAAWgAAAAwAAAAyAAAADA=="
+)
 
-if os.path.exists(font_path):
-    try:
-        with open(font_path, "rb") as f:
-            font_data = base64.b64encode(f.read()).decode("utf-8")
-        font_css = f"""
-        @font-face {{
-            font-family: 'OkMallang';
-            src: url(data:font/truetype;charset=utf-8;base64,{font_data}) format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }}
-        * {{
-            font-family: 'OkMallang', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        }}
-        """
-    except Exception:
-        pass
-
-# ----------------------------------------------------------------------
-# 2. 페이지 설정 및 스마트폰 모바일 3열 강제 유지 CSS
-# ----------------------------------------------------------------------
 st.set_page_config(page_title="머니머니 계산기", page_icon="💵", layout="centered")
 
 st.markdown(f"""
 <style>
-    {font_css}
+    @font-face {{
+        font-family: 'OkMallangB';
+        src: url(data:font/truetype;charset=utf-8;base64,{FONT_BASE64}) format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }}
 
-    /* 1. 바깥 웹 배경: 순백색 유지 */
+    /* 전역 글꼴 강제 적용 */
+    *, html, body, button, input, select, span, p, div {{
+        font-family: 'OkMallangB', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }}
+
+    /* 1. 바깥 배경: 순백색 */
     .stApp, html, body {{
         background-color: #FFFFFF !important;
     }}
 
-    header, footer {{ visibility: hidden !important; }}
+    header, footer {{ visibility: hidden !important; height: 0 !important; }}
 
-    /* 2. 스마트폰 본체 테두리 프레임 (반응형) */
+    /* 2. 한 화면(100vh) 맞춤 스마트폰 테두리 */
     .block-container {{
-        width: 94vw !important;
-        max-width: 410px !important;
+        width: 92vw !important;
+        max-width: 360px !important;
         background-color: #000000 !important;
-        border: clamp(8px, 2.5vw, 14px) solid #1f1f21 !important;
-        border-radius: clamp(32px, 10vw, 54px) !important;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), 0 0 0 2px #444448 !important;
-        padding: clamp(14px, 4vw, 24px) clamp(10px, 3vw, 16px) clamp(16px, 4vw, 24px) clamp(10px, 3vw, 16px) !important;
-        margin: 15px auto !important;
+        border: clamp(6px, 2vw, 10px) solid #1f1f21 !important;
+        border-radius: clamp(28px, 8vw, 42px) !important;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35) !important;
+        padding: 10px 14px 14px 14px !important;
+        margin: 5px auto !important;
         box-sizing: border-box !important;
     }}
 
-    /* 3. [핵심 버그 수정] 모바일 화면에서도 st.columns가 세로로 떨어지지 않고 반드시 가로 3열 유지 */
+    /* 3. 상단 다이내믹 아일랜드 */
+    .dynamic-island {{
+        width: 75px;
+        height: 18px;
+        background-color: #000000;
+        border-radius: 14px;
+        margin: 0 auto 4px auto;
+        border: 2px solid #222224;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 8px;
+    }}
+    .camera-lens {{
+        width: 6px;
+        height: 6px;
+        background-color: #0a1128;
+        border-radius: 50%;
+        border: 1px solid #1b263b;
+    }}
+
+    /* 4. 모바일 3열 가로 정렬 고정 */
     div[data-testid="stHorizontalBlock"] {{
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         align-items: center !important;
         justify-content: space-between !important;
-        gap: clamp(6px, 2vw, 12px) !important;
-        margin-bottom: clamp(6px, 1.8vw, 10px) !important;
+        gap: 6px !important;
+        margin-bottom: 5px !important;
     }}
 
     div[data-testid="stColumn"] {{
@@ -75,62 +101,42 @@ st.markdown(f"""
         align-items: center !important;
     }}
 
-    /* 4. 상단 다이내믹 아일랜드 */
-    .dynamic-island {{
-        width: clamp(80px, 24vw, 105px);
-        height: clamp(18px, 5.5vw, 24px);
-        background-color: #000000;
-        border-radius: 20px;
-        margin: 0 auto clamp(6px, 2vw, 10px) auto;
-        border: 2px solid #222224;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        padding-right: 10px;
-    }}
-    .camera-lens {{
-        width: 8px;
-        height: 8px;
-        background-color: #0a1128;
-        border-radius: 50%;
-        border: 1px solid #1b263b;
-    }}
-
-    /* 5. 라벨 글자색 흰색 및 지정 폰트 적용 */
+    /* 5. 국가 선택 셀렉트박스 */
     div[data-testid="stSelectbox"] label,
     div[data-testid="stSelectbox"] label p {{
         color: #FFFFFF !important;
-        font-size: clamp(12px, 3.2vw, 14px) !important;
+        font-size: 11px !important;
         font-weight: 700 !important;
+        margin-bottom: 2px !important;
     }}
 
     div[data-baseweb="select"] > div {{
         background-color: #1C1C1E !important;
-        border-radius: 12px !important;
+        border-radius: 10px !important;
         border: 1px solid #333333 !important;
-        min-height: clamp(34px, 8vw, 40px) !important;
+        min-height: 32px !important;
+        height: 32px !important;
     }}
     div[data-baseweb="select"] span {{
         color: #FFFFFF !important;
-        font-weight: 600 !important;
-        font-size: clamp(12px, 3vw, 14px) !important;
+        font-size: 11px !important;
+        line-height: 1.2 !important;
     }}
 
-    /* 6. 동그라미 버튼 규격 (3열 가로 폭에 맞춰 비율 유지) */
+    /* 6. 동그라미 버튼 규격 (한 화면에 맞춰 자동 축소) */
     div[data-testid="stButton"] {{
         width: 100% !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }}
 
     div[data-testid="stButton"] > button {{
-        width: clamp(56px, 18vw, 76px) !important;
-        height: clamp(56px, 18vw, 76px) !important;
-        min-width: clamp(56px, 18vw, 76px) !important;
-        min-height: clamp(56px, 18vw, 76px) !important;
-        max-width: clamp(56px, 18vw, 76px) !important;
-        max-height: clamp(56px, 18vw, 76px) !important;
+        width: clamp(52px, 14vw, 62px) !important;
+        height: clamp(52px, 14vw, 62px) !important;
+        min-width: clamp(52px, 14vw, 62px) !important;
+        min-height: clamp(52px, 14vw, 62px) !important;
+        max-width: clamp(52px, 14vw, 62px) !important;
+        max-height: clamp(52px, 14vw, 62px) !important;
         border-radius: 50% !important;
         border: none !important;
         display: flex !important;
@@ -138,8 +144,8 @@ st.markdown(f"""
         justify-content: center !important;
         margin: 0 auto !important;
         padding: 0 !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.35) !important;
-        transition: transform 0.08s ease, opacity 0.1s ease !important;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.3) !important;
+        transition: transform 0.08s ease !important;
     }}
 
     div[data-testid="stButton"] > button:active {{
@@ -147,7 +153,7 @@ st.markdown(f"""
         opacity: 0.7 !important;
     }}
 
-    /* 숫자 버튼: 주황색 + 볼드 숫자 + 지정 폰트 */
+    /* 숫자 버튼: 주황색 + Ok Mallang B 폰트 적용 */
     .btn-num div[data-testid="stButton"] > button {{
         background-color: #FF9F0A !important;
     }}
@@ -156,7 +162,8 @@ st.markdown(f"""
     .btn-num div[data-testid="stButton"] > button div,
     .btn-num div[data-testid="stButton"] > button * {{
         color: #FFFFFF !important;
-        font-size: clamp(26px, 8.5vw, 38px) !important;
+        font-family: 'OkMallangB', sans-serif !important;
+        font-size: clamp(24px, 6.5vw, 30px) !important;
         font-weight: 900 !important;
         line-height: 1 !important;
         margin: 0 !important;
@@ -164,7 +171,7 @@ st.markdown(f"""
         text-align: center !important;
     }}
 
-    /* 기능 버튼 (C, ⌫): 회색 버튼 */
+    /* 기능 버튼 (C, ⌫) */
     .btn-fn div[data-testid="stButton"] > button {{
         background-color: #A5A5A5 !important;
     }}
@@ -173,7 +180,8 @@ st.markdown(f"""
     .btn-fn div[data-testid="stButton"] > button div,
     .btn-fn div[data-testid="stButton"] > button * {{
         color: #000000 !important;
-        font-size: clamp(18px, 5.5vw, 26px) !important;
+        font-family: 'OkMallangB', sans-serif !important;
+        font-size: clamp(16px, 4.5vw, 20px) !important;
         font-weight: 900 !important;
         line-height: 1 !important;
         margin: 0 !important;
@@ -183,18 +191,18 @@ st.markdown(f"""
 
     /* 하단 홈 바 */
     .home-bar {{
-        width: clamp(90px, 28vw, 130px);
-        height: clamp(3.5px, 1vw, 5px);
+        width: 80px;
+        height: 4px;
         background-color: #FFFFFF;
         border-radius: 10px;
-        margin: clamp(14px, 4vw, 20px) auto 0 auto;
-        opacity: 0.75;
+        margin: 8px auto 0 auto;
+        opacity: 0.7;
     }}
 </style>
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------------------------
-# 3. 세션 상태 관리 및 환율 계산 함수
+# 2. 세션 상태 관리 및 환율 계산 로직
 # ----------------------------------------------------------------------
 if "input_amount" not in st.session_state:
     st.session_state.input_amount = "0"
@@ -257,14 +265,14 @@ def press_action(key, from_c, to_c):
         st.session_state.converted_amount = calculate_exchange(st.session_state.input_amount, from_c, to_c)
 
 # ----------------------------------------------------------------------
-# 4. 상단 헤더 및 디스플레이
+# 3. 상단 다이내믹 아일랜드 및 컴팩트 디스플레이
 # ----------------------------------------------------------------------
 st.markdown("""
 <div class="dynamic-island">
     <div class="camera-lens"></div>
 </div>
-<div style="text-align: center; margin-bottom: clamp(6px, 2vw, 12px);">
-    <span style="font-size: clamp(13px, 3.8vw, 15px); font-weight: 800; color: #FFFFFF; letter-spacing: 0.5px;">💵 머니머니 계산기 💵</span>
+<div style="text-align: center; margin-bottom: 4px;">
+    <span style="font-size: 13px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.5px;">💵 머니머니 계산기 💵</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -286,21 +294,21 @@ except ValueError:
     formatted_input = st.session_state.input_amount
 
 st.markdown(f"""
-<div style="padding: clamp(6px, 2vw, 10px) clamp(8px, 2.5vw, 14px); margin-bottom: clamp(6px, 2vw, 12px); text-align: right;">
-    <div style="display: flex; justify-content: flex-end; align-items: baseline; gap: 6px;">
-        <span style="font-size: clamp(28px, 9vw, 42px); font-weight: 300; color: #FFFFFF; line-height: 1;">{formatted_input}</span>
-        <span style="font-size: clamp(11px, 3vw, 14px); color: #8E8E93; font-weight: 700;">{from_code}</span>
+<div style="padding: 4px 10px; margin-bottom: 6px; text-align: right;">
+    <div style="display: flex; justify-content: flex-end; align-items: baseline; gap: 4px;">
+        <span style="font-size: clamp(24px, 7vw, 32px); font-weight: 300; color: #FFFFFF; line-height: 1;">{formatted_input}</span>
+        <span style="font-size: 11px; color: #8E8E93; font-weight: 700;">{from_code}</span>
     </div>
-    <div style="height: 1px; background-color: #272729; margin: clamp(6px, 2vw, 10px) 0;"></div>
-    <div style="display: flex; justify-content: flex-end; align-items: baseline; gap: 6px;">
-        <span style="font-size: clamp(22px, 7.5vw, 34px); font-weight: 600; color: #FF9F0A; line-height: 1;">{st.session_state.converted_amount}</span>
-        <span style="font-size: clamp(11px, 3vw, 14px); color: #8E8E93; font-weight: 700;">{to_code}</span>
+    <div style="height: 1px; background-color: #272729; margin: 4px 0;"></div>
+    <div style="display: flex; justify-content: flex-end; align-items: baseline; gap: 4px;">
+        <span style="font-size: clamp(18px, 5.5vw, 24px); font-weight: 600; color: #FF9F0A; line-height: 1;">{st.session_state.converted_amount}</span>
+        <span style="font-size: 11px; color: #8E8E93; font-weight: 700;">{to_code}</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 # ----------------------------------------------------------------------
-# 5. 키패드: 모바일에서도 무조건 3열 가로 정렬 유지
+# 4. 한 화면에 쏙 들어오는 3열 키패드 (Ok Mallang B 폰트 적용)
 # ----------------------------------------------------------------------
 # 1행: 1, 2, 3
 r1 = st.columns(3)
