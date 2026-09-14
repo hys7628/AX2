@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_e43ab1e86db6c57b454fe3fdf170d6e5 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_e43ab1e86db6c57b454fe3fdf170d6e5" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_e43ab1e86db6c57b454fe3fdf170d6e5 = L.map(
+                "map_e43ab1e86db6c57b454fe3fdf170d6e5",
+                {
+                    center: [37.5759, 126.9768],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 12,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_b52f9a1a23660f76566383b0b3cff9b9 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_b52f9a1a23660f76566383b0b3cff9b9.addTo(map_e43ab1e86db6c57b454fe3fdf170d6e5);
+        
+    
+            var marker_513f30dd8c9fc0ae94b48bbe494f43d0 = L.marker(
+                [37.6106, 126.9752],
+                {
+}
+            ).addTo(map_e43ab1e86db6c57b454fe3fdf170d6e5);
+        
+    
+            var icon_b81782420b673b6743a23f424b797c1d = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "leaf",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_964be685c2465bcfbad8cce99f1cae31 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_b7d51d83831dc518b1bb1537bbd02ae1 = $(`<div id="html_b7d51d83831dc518b1bb1537bbd02ae1" style="width: 100.0%; height: 100.0%;"><b>더피아노</b><br>서울 종로구 평창6길 71</div>`)[0];
+                popup_964be685c2465bcfbad8cce99f1cae31.setContent(html_b7d51d83831dc518b1bb1537bbd02ae1);
+            
+        
+
+        marker_513f30dd8c9fc0ae94b48bbe494f43d0.bindPopup(popup_964be685c2465bcfbad8cce99f1cae31)
+        ;
+
+        
+    
+    
+            marker_513f30dd8c9fc0ae94b48bbe494f43d0.bindTooltip(
+                `<div>
+                     더피아노
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_513f30dd8c9fc0ae94b48bbe494f43d0.setIcon(icon_b81782420b673b6743a23f424b797c1d);
+            
+    
+            var marker_8f0d8f06a481b13919978390e1ce53d7 = L.marker(
+                [37.6582, 127.0057],
+                {
+}
+            ).addTo(map_e43ab1e86db6c57b454fe3fdf170d6e5);
+        
+    
+            var icon_cdb4553857f5b19450cb7705095116c6 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "leaf",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_ee637cc8f2be481b8c070b4352a88e91 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_bcc50f32f0d283051138c283dbc77361 = $(`<div id="html_bcc50f32f0d283051138c283dbc77361" style="width: 100.0%; height: 100.0%;"><b>카페 산아래</b><br>서울 강북구 삼양로181길 56</div>`)[0];
+                popup_ee637cc8f2be481b8c070b4352a88e91.setContent(html_bcc50f32f0d283051138c283dbc77361);
+            
+        
+
+        marker_8f0d8f06a481b13919978390e1ce53d7.bindPopup(popup_ee637cc8f2be481b8c070b4352a88e91)
+        ;
+
+        
+    
+    
+            marker_8f0d8f06a481b13919978390e1ce53d7.bindTooltip(
+                `<div>
+                     카페 산아래
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_8f0d8f06a481b13919978390e1ce53d7.setIcon(icon_cdb4553857f5b19450cb7705095116c6);
+            
+    
+            var marker_2a12be20fd4d469f0f346940d067486c = L.marker(
+                [37.6402, 126.9381],
+                {
+}
+            ).addTo(map_e43ab1e86db6c57b454fe3fdf170d6e5);
+        
+    
+            var icon_891a066b97186977c1d205d505c21de8 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "leaf",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_41ec39b8844ea954d3885829c3cf9964 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_aa242e33ba33a7370745ba93962a8ccd = $(`<div id="html_aa242e33ba33a7370745ba93962a8ccd" style="width: 100.0%; height: 100.0%;"><b>1인1잔</b><br>서울 은평구 연서로 534</div>`)[0];
+                popup_41ec39b8844ea954d3885829c3cf9964.setContent(html_aa242e33ba33a7370745ba93962a8ccd);
+            
+        
+
+        marker_2a12be20fd4d469f0f346940d067486c.bindPopup(popup_41ec39b8844ea954d3885829c3cf9964)
+        ;
+
+        
+    
+    
+            marker_2a12be20fd4d469f0f346940d067486c.bindTooltip(
+                `<div>
+                     1인1잔
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_2a12be20fd4d469f0f346940d067486c.setIcon(icon_891a066b97186977c1d205d505c21de8);
+            
+    
+            var marker_24e9fdb00ec7743b0e51730808d92fe1 = L.marker(
+                [37.5779, 126.9658],
+                {
+}
+            ).addTo(map_e43ab1e86db6c57b454fe3fdf170d6e5);
+        
+    
+            var icon_8eb072364a73f67c77146b68612a4cad = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "leaf",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_0609899d05cfbcaa5563600f268acb12 = L.popup({
+  "maxWidth": 250,
+});
+
+        
+            
+                var html_e53a1e409eb52fa1aeb033d455853772 = $(`<div id="html_e53a1e409eb52fa1aeb033d455853772" style="width: 100.0%; height: 100.0%;"><b>스태픽스</b><br>서울 종로구 사직로9길 22</div>`)[0];
+                popup_0609899d05cfbcaa5563600f268acb12.setContent(html_e53a1e409eb52fa1aeb033d455853772);
+            
+        
+
+        marker_24e9fdb00ec7743b0e51730808d92fe1.bindPopup(popup_0609899d05cfbcaa5563600f268acb12)
+        ;
+
+        
+    
+    
+            marker_24e9fdb00ec7743b0e51730808d92fe1.bindTooltip(
+                `<div>
+                     스태픽스
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_24e9fdb00ec7743b0e51730808d92fe1.setIcon(icon_8eb072364a73f67c77146b68612a4cad);
+            
+</script>
+</html>
