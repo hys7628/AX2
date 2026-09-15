@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>SupplyLens - AI 분석 대시보드</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top-nav">
+    <a href="/" class="brand-name">← SupplyLens Home</a>
+  </header>
+
+  <div class="dash-container">
+    <div class="dash-header">
+      <!-- 🔍 [JS 없음] 순수 HTML 렌즈 홈 복귀 링크 버튼 -->
+      <a href="/" class="mini-lens-home-btn" title="홈으로 돌아가기">
+        <div class="mini-lens-ring"></div>
+        <span class="mini-lens-icon">🌐</span>
+      </a>
+
+      <h2>글로벌 공급망 AI 브리핑</h2>
+      <p style="color: #64748b; font-size: 0.95rem; margin-top: 4px;">국가별 리스크 · 운임 · 환율 · 관세 · 뉴스 종합 분석</p>
+    </div>
+
+    <!-- 순수 HTML Form 전송 (JavaScript 없이 Flask 백엔드로 전송) -->
+    <form action="/dashboard" method="POST">
+      <!-- 1. API Key 입력창 (챗봇 너비와 맞춤, 입력한 키 값은 value="{{ api_key }}"로 유지) -->
+      <div class="api-key-bar">
+        <span class="key-icon">🔑</span>
+        <input type="password" name="apiKey" value="{{ api_key }}" placeholder="OpenAI API Key를 입력하세요 (sk-...)" autocomplete="off">
+      </div>
+
+      <!-- 2. 대시보드 및 챗봇 화면 -->
+      <!-- 챗봇 카드 UI -->
+      <div class="chat-card">
+        <div class="chat-box">
+          <!-- 기본 default 안내 메시지 -->
+          <div class="chat-msg msg-bot">
+            👋 안녕하세요! SupplyLens 공급망 인텔리전스 AI입니다.<br><br>
+            <strong>어떤 나라를 검색하고 싶으신가요?</strong><br>
+            (예: 미국, 중국, 베트남, 독일 등)
+          </div>
+
+          <!-- 사용자가 입력한 국가명 표시 -->
+          {% if country %}
+          <div class="chat-msg msg-user">
+            {{ country }}
+          </div>
+          {% endif %}
+
+          <!-- 에러 메시지 표시 -->
+          {% if error_msg %}
+          <div class="chat-msg msg-bot" style="border-color: #fca5a5; background-color: #fef2f2; color: #b91c1c;">
+            ⚠️ {{ error_msg }}
+          </div>
+          {% endif %}
+
+          <!-- AI 분석 결과 표시 -->
+          {% if result %}
+          <div class="chat-msg msg-bot" style="white-space: pre-wrap;">
+            {{ result }}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- 하단 국가명 입력 및 전송 바 (type="submit" 필수) -->
+        <div class="input-bar">
+          <input type="text" name="country" placeholder="국가명을 입력하세요 (예: 미국)" required>
+          <button type="submit" class="btn-send">검색</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <!-- 🎵 서브 대시보드 연속 재생 오디오 태그 -->
+  <audio id="bgmAudio" loop preload="auto">
+    <source src="/bgm.mp3" type="audio/mpeg">
+    <source src="{{ url_for('static', filename='bgm.mp3') }}" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const bgm = document.getElementById('bgmAudio');
+    bgm.volume = 0.1;
+
+    // 이전 화면(홈)에서 재생 중이었던 시점부터 이어서 재생
+    const isPlaying = sessionStorage.getItem('bgm_playing');
+    const savedTime = parseFloat(sessionStorage.getItem('bgm_time') || '0');
+
+    if (isPlaying === 'true') {
+      bgm.currentTime = savedTime;
+      bgm.play().catch(function() {
+        // 자동 전환 시 막히면 첫 클릭 시 바로 복구
+        window.addEventListener('click', function() {
+          bgm.play();
+        }, { once: true });
+      });
+    }
+  </script>
+</body>
+</html>

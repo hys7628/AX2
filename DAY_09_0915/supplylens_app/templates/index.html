@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>SupplyLens - 글로벌 공급망 위험 대시보드</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top-nav">
+    <div class="brand-name">🔍 SupplyLens</div>
+  </header>
+
+  <!-- 1. 메인 홈 화면 영역 -->
+  <main class="hero-wrapper" id="homeView">
+    <h1 class="title">SupplyLens</h1>
+    <p class="core-value">"Looking closely into global supply chains through data"</p>
+
+    <div class="lens-container" id="targetLens">
+      <div class="lens-ring"></div>
+      <span class="lens-icon">🌐</span>
+    </div>
+
+    <button type="button" class="btn-start" onclick="switchToDashboard()">START LENS</button>
+  </main>
+
+  <!-- 2. 서브 대시보드 영역 (처음에는 숨김) -->
+  <div class="dash-container" id="dashView" style="display: none; opacity: 0; transition: opacity 0.6s ease;">
+    <div class="dash-header">
+      <h2>글로벌 공급망 AI 브리핑</h2>
+      <p style="color: #64748b; font-size: 0.95rem; margin-top: 4px;">국가별 리스크 · 운임 · 환율 · 관세 · 뉴스 종합 분석</p>
+    </div>
+
+    <!-- API Key 입력창 -->
+    <div class="api-key-bar">
+      <span class="key-icon">🔑</span>
+      <input type="password" id="apiKeyInput" placeholder="OpenAI API Key를 입력하세요 (sk-...)" autocomplete="off">
+    </div>
+
+    <!-- 챗봇 카드 UI -->
+    <div class="chat-card">
+      <div class="chat-box" id="chatBox">
+        <div class="chat-msg msg-bot">
+          👋 안녕하세요! SupplyLens 공급망 인텔리전스 AI입니다.<br><br>
+          <strong>어떤 나라를 검색하고 싶으신가요?</strong><br>
+          (예: 미국, 중국, 베트남, 독일 등)
+        </div>
+      </div>
+
+      <div class="input-bar">
+        <input type="text" id="countryInput" placeholder="국가명을 입력하세요 (예: 미국)" onkeydown="if(event.key==='Enter') requestAnalysis()">
+        <button type="button" class="btn-send" onclick="requestAnalysis()">검색</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎵 배경음악 오디오 태그 -->
+  <audio id="bgmAudio" loop preload="auto">
+    <source src="/bgm.mp3" type="audio/mpeg">
+    <source src="{{ url_for('static', filename='bgm.mp3') }}" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const bgm = document.getElementById('bgmAudio');
+    bgm.volume = 0.1;
+
+    // 첫 반응 시 즉시 재생
+    function tryPlay() {
+      bgm.play().catch(function(){});
+    }
+    ['click', 'touchstart', 'keydown'].forEach(evt => window.addEventListener(evt, tryPlay, { once: true }));
+
+    // ✨ 핵심: 페이지를 새로고침하지 않고 화면만 전환하여 음악 끊김을 원천 차단
+    function switchToDashboard() {
+      tryPlay();
+      const lens = document.getElementById('targetLens');
+      lens.classList.add('zoom-warp');
+
+      setTimeout(() => {
+        // 홈 화면 숨기기
+        document.getElementById('homeView').style.display = 'none';
+        
+        // 대시보드 화면 부드럽게 띄우기
+        const dash = document.getElementById('dashView');
+        dash.style.display = 'block';
+        setTimeout(() => { dash.style.opacity = '1'; }, 50);
+      }, 750);
+    }
+
+    // 챗봇 분석 비동기 요청 (음악 유지)
+    async function requestAnalysis() {
+      const countryInput = document.getElementById('countryInput');
+      const apiKeyInput = document.getElementById('apiKeyInput');
+      const chatBox = document.getElementById('chatBox');
+
+      const country = countryInput.value.trim();
+      const apiKey = apiKeyInput.value.trim();
+      if (!country) return;
+
+      // 사용자 말풍선
+      appendBubble(country, 'msg-user');
+      countryInput.value = '';
+
+      if (!apiKey) {
+        appendBubble('⚠️ OpenAI API 키를 상단 입력창에 입력해주세요!', 'msg-bot');
+        return;
+      }
+
+      const loadMsg = appendBubble(`🔍 [${country}] 공급망 데이터를 분석하는 중입니다...`, 'msg-bot');
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country: country, apiKey: apiKey })
+        });
+        const data = await res.json();
+        loadMsg.remove();
+        if (data.error) {
+          appendBubble('⚠️ ' + data.error, 'msg-bot');
+        } else {
+          appendBubble(data.reply, 'msg-bot');
+        }
+      } catch (e) {
+        loadMsg.remove();
+        appendBubble('⚠️ 통신 에러가 발생했습니다: ' + e, 'msg-bot');
+      }
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendBubble(text, cls) {
+      const box = document.getElementById('chatBox');
+      const div = document.createElement('div');
+      div.className = `chat-msg ${cls}`;
+      div.innerHTML = text.replace(/\n/g, '<br>');
+      box.appendChild(div);
+      return div;
+    }
+  </script>
+</body>
+</html>
